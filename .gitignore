@@ -1,0 +1,17 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Audio recordings are never committed — see DEC-004 (pending): audio is not persisted,
+# only transcripts.
+spike/audio/
+*.wav
+*.m4a
+
+# Downloaded models
+models/
+.cache/
+
+# macOS
+.DS_Store
