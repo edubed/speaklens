@@ -108,7 +108,12 @@ rankeados y un plan de estudio.
 
 ## **Decisiones de Proceso**
 
-### **DEC-011: Spike de literalidad de Whisper antes de construir nada**
+### **DEC-011: Spike de literalidad de Whisper antes de construir nada** ✅ RESUELTA
+
+> Resuelta el 2026-08-02 tras dos rondas. **Veredicto: GO, 13/15.** El riesgo no se materializó:
+> con audio normalizado Whisper transcribe literal. Ver `prep-week.md` para los datos y
+> DEC-017/DEC-018 para las consecuencias de diseño.
+
 
 - **Fecha**: 2026-08-02
 - **Contexto**: **Riesgo #1 del proyecto.** Whisper no transcribe literal: está entrenado para producir texto fluido y bien formado, así que tiende a corregir la gramática al transcribir. Si al decir *"yesterday I go to the meeting"* escribe *"yesterday I went to the meeting"*, LanguageTool no encuentra nada y el diagnóstico gramatical se cae entero.
@@ -155,6 +160,30 @@ rankeados y un plan de estudio.
 - **Decisión**: Semana del 3 al 7 de agosto para instalar y hacer el spike sin apuro. Sábado 8 y domingo 9 para construir. **El video se graba el domingo 9**, no "después".
 - **Motivo**: Llegar al fin de semana con el riesgo técnico ya resuelto. Los proyectos mueren porque el demo nunca se graba, así que el video es entregable del fin de semana.
 - **Impacto**: El gate de Plata Juntos se corre una semana; sigue siendo el gate.
+
+### **DEC-017: Normalización de loudness obligatoria antes de transcribir**
+
+- **Fecha**: 2026-08-02
+- **Contexto**: La ronda 1 del spike concluyó que Whisper corregía la gramática. La ronda 2, sobre habla equivalente pero con el audio normalizado a −16 LUFS, mostró lo contrario: los mismos errores se preservaron en las cuatro condiciones. La causa es conocida en ASR: con evidencia acústica débil el decodificador se apoya en su modelo de lenguaje interno y "repara" el texto.
+- **Decisión**: Todo audio pasa por `loudnorm=I=-16:TP=-1.5:LRA=11` antes de llegar a Whisper. No es un paso opcional de calidad: es lo que hace válido el diagnóstico.
+- **Motivo**: Sin normalizar, el sistema silenciosamente esconde los errores que existe para detectar — el peor modo de falla posible, porque no se nota.
+- **Impacto**: Se descarta juzgar tomas por `mean_volume`, que promedia los silencios entre frases y rechaza grabaciones perfectamente audibles. El corte se hace por pico, y la normalización se encarga del resto.
+
+### **DEC-018: `medium.en` por defecto; sin `initial_prompt`**
+
+- **Fecha**: 2026-08-02
+- **Contexto**: `base.en` y `medium.en` empataron en preservación de errores (13/15), y `base.en` es ~10× más chico y más rápido.
+- **Decisión**: El modelo por defecto es `medium.en`. Se descarta el `initial_prompt` de literalidad. `small.en` queda como alternativa si la RAM aprieta.
+- **Motivo**: Empatan en preservar errores pero no en fidelidad léxica: `base.en` transcribió *"a new letter"* por *"a new laptop"* y *"Just like"* por *"Yesterday"*. En un diagnóstico eso es peor que perder un error, porque **LanguageTool le atribuiría al usuario errores cometidos por el transcriptor**. Un falso positivo le enseña algo falso a alguien que no puede detectarlo — exactamente lo que DEC-004 busca evitar. Sobre el prompt: no aumentó la literalidad y produjo la única corrección genuina de las 60 observaciones.
+- **Impacto**: ~10,6 s para transcribir 62 s de audio (≈6× tiempo real), aceptable para un diagnóstico que no es conversacional. La métrica que gobierna la elección de modelo es la tasa de falsos positivos, no la velocidad.
+
+### **DEC-019: Las confusiones acústicas recurrentes son señal, no ruido**
+
+- **Fecha**: 2026-08-02
+- **Contexto**: Dos casos no cerraron por transcripción divergente: *"agree"* se escuchó como *"angry"* en las cuatro condiciones, y *"arrived"* perdió la `-d` final.
+- **Decisión**: Registrar estos desacuerdos en lugar de descartarlos. Cuando varios modelos coinciden en escuchar otra palabra, es información sobre la pronunciación del hablante.
+- **Motivo**: Es la aproximación más barata a evaluar pronunciación que existe en el sistema, y DEC-003 había descartado el scoring fonémico por costo. No reemplaza un forced aligner, pero no cuesta nada.
+- **Impacto**: Candidato a feature de v2. No entra en el fin de semana.
 
 ---
 

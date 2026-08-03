@@ -46,22 +46,32 @@ ffmpeg -hide_banner -loglevel warning \
 echo ""
 echo "Saved to $OUT"
 
+# Judge the take by its peak, not its mean: mean_volume averages in the pauses
+# between sentences, so a perfectly audible recording with deliberate gaps scores
+# as "quiet" and gets rejected for no reason. Peak tells us whether the voice
+# actually reached the mic; loudness normalisation below fixes everything else.
 LEVELS=$(ffmpeg -hide_banner -i "$OUT" -af volumedetect -f null - 2>&1 || true)
 MEAN=$(echo "$LEVELS" | awk -F': ' '/mean_volume/ {print $2}' | awk '{print $1}')
 PEAK=$(echo "$LEVELS" | awk -F': ' '/max_volume/ {print $2}' | awk '{print $1}')
 
 echo "Level check:  mean ${MEAN} dB   peak ${PEAK} dB"
 
-if [[ -n "${MEAN:-}" ]] && awk -v m="$MEAN" 'BEGIN {exit !(m < -32)}'; then
+if [[ -n "${PEAK:-}" ]] && awk -v p="$PEAK" 'BEGIN {exit !(p < -30)}'; then
   cat <<EOF
 
-  TOO QUIET. Below about -32 dB mean, the transcriber starts dropping
-  unstressed words and the results stop meaning anything. Move closer to the
-  mic, raise your voice, and record again before analysing.
+  TOO QUIET. The loudest moment barely reached the microphone, so there is no
+  signal to recover. Move closer, speak up, and record again.
 
 EOF
   exit 1
 fi
 
+# Every take gets normalised to a consistent loudness so that transcription
+# results are comparable across sessions and never confounded by mic distance.
+NORM="$DIR/audio/attempt_norm.wav"
+ffmpeg -hide_banner -loglevel error -i "$OUT" \
+  -af loudnorm=I=-16:TP=-1.5:LRA=11 -ar 16000 -ac 1 -y "$NORM"
+
+echo "Normalised to $NORM"
 echo ""
-echo "Level is fine. Now run:  .venv/bin/python spike/analyze.py"
+echo "Now run:  .venv/bin/python spike/analyze.py spike/audio/attempt_norm.wav"

@@ -64,12 +64,36 @@ Pasalas por `small.en` y por `medium.en` y compará contra lo que dijiste.
 
 Las regex ya nacen tolerantes a artículos y palabras átonas omitidas, y `record.sh` aborta si la grabación queda por debajo de −32 dB. Los 15 casos pasan test de regresión en ambas direcciones.
 
+### Ronda 2 — 2026-08-02 · resultado: **GO (13/15)**
+
+Grabación de 62 s, normalizada a −16 LUFS antes de transcribir.
+
+| Condición | Preservados |
+|---|---|
+| `base.en` | 13/15 |
+| `small.en` | 12/15 |
+| `small.en` + prompt de literalidad | 12/15 |
+| `medium.en` | 13/15 |
+
+Por categoría (mejor condición): tiempo verbal 3/3 · concordancia 3/3 · calcos 2/3 · preposiciones 2/3 · artículos 2/2 · orden de palabras 1/1.
+
+**Hallazgo principal — la conclusión de la ronda 1 era un artefacto del audio.** En la ronda 1, *"She don't like the project"* fue corregida por los tres modelos sin excepción. Con el mismo tipo de habla pero audio normalizado, la preservan las cuatro condiciones. La explicación es conocida en ASR: cuando la evidencia acústica es débil, el decodificador se apoya más en su modelo de lenguaje interno y "repara" el texto. **Con audio limpio, Whisper transcribe literal.**
+
+Sobre 60 observaciones (4 condiciones × 15 casos) hubo **una sola corrección genuina**: `small.en` + prompt de literalidad convirtió *"depend of"* en *"depend on"*. Irónicamente fue la condición diseñada para aumentar la literalidad — el prompt se descarta.
+
+**Los dos casos que no cerraron no son normalización:**
+
+- **Caso 8** (*"I am agree"*): las cuatro condiciones escucharon *"I am **angry** with you"*. Es una confusión acústica, no una corrección.
+- **Caso 12** (*"She arrived to the airport"*): se transcribió *"she arrive to"*. El rasgo evaluado — la preposición equivocada — **sí sobrevivió**; la regex exigía *"arrived"* y falló por la `-d` final no pronunciada. No se tocó la regex ni el umbral: el veredicto pasa cómodo de cualquier manera.
+
+Ambos son, de hecho, **señal real sobre la pronunciación del usuario** y no ruido del experimento.
+
+**Hallazgo secundario, y es el que más importa para el diseño:** `base.en` empata en preservación (13/15) pero transcribe peor el léxico — escribió *"a new letter"* por *"a new laptop"* y *"Just like"* por *"Yesterday"*. Para un diagnóstico eso es peligroso: **LanguageTool le atribuiría al usuario errores que en realidad cometió el transcriptor** (falsos positivos). Preservar errores es necesario pero no suficiente; también hace falta fidelidad léxica. Por eso el modelo por defecto no es el que puntúa igual siendo más chico.
+
 ```
-Resultado ronda 2 (completar):
-mejor condición →
-sobreviven      → __/15
-por categoría   →
-Decisión        →
+mejor condición → medium.en (13/15, mejor fidelidad léxica)
+sobreviven      → 13/15
+decisión        → GO. Ver DEC-017 y DEC-018.
 ```
 
 ---
