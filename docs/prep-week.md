@@ -31,13 +31,45 @@ Pasalas por `small.en` y por `medium.en` y compará contra lo que dijiste.
 - **Menos de 3 sobreviven** → aplicá las mitigaciones de DEC-011 en orden. Si ninguna
   funciona, el proyecto pivotea a fluidez pura (DEC-010), que ya está diseñada.
 
-Anotá el resultado acá abajo — es contenido del README:
+### Ronda 1 — 2026-08-02 · resultado: **inconcluyente, riesgo confirmado**
+
+5 frases, 3 condiciones. Grabación a −39,5 dB de media (demasiado baja).
+
+| # | Categoría | Resultado |
+|---|---|---|
+| 1 | pasado simple | preservado — *"I go to meeting"* |
+| 2 | calco (edad) | preservado — *"I have 32 years old"* |
+| 3 | concordancia | **corregido** — *don't* → *doesn't*, en los 3 modelos |
+| 4 | calco (agree) | **corregido** — *I am agree* → *I agree*, en los 3 modelos |
+| 5 | preposición | no encontrado — Whisper se comió *"me"* (audio flojo) |
+
+**Conclusiones:**
+
+1. **El riesgo de DEC-011 es real y está confirmado.** Whisper corrige gramática: los casos 3 y 4 fueron normalizados por las tres condiciones sin excepción.
+2. **La magnitud no se pudo medir.** Muestra de 5, grabación baja, y dos pérdidas de palabras cortas atribuibles al volumen y no a normalización.
+3. **Advertencia metodológica:** el conteo pasó de 1/5 a 3/5 tras corregir dos regex *después* de ver los datos. El arreglo del caso 1 era legítimo (la regex exigía un `"the"` que Whisper omitió). El del caso 5 fue discutible: aceptaba *"explain my"* como error sobreviviente cuando en realidad era una mala escucha. Ese cambio post-hoc fue justo el que cruzó el umbral, así que **el GO de la ronda 1 no es válido** y se descarta.
+4. **Hipótesis emergente:** Whisper corrige los errores cuya forma correcta es una colocación de alta frecuencia (*"she doesn't like"*, *"I agree with you"*) y preserva aquellos cuya corrección no lo es (*"I go to meeting"*, *"I have 32 years old"*).
+
+### Ronda 2 — pendiente de grabar
+
+15 frases sobre 6 categorías, diseñadas para poner a prueba la hipótesis anterior. 4 condiciones (`base.en`, `small.en`, `small.en` + prompt de literalidad, `medium.en`), que cubren de paso las mitigaciones 1 y 2 de DEC-011.
+
+**Criterio pre-registrado en el código, cerrado antes de correr:**
+
+| Sobreviven | Veredicto |
+|---|---|
+| ≥ 8/15 | **GO** — se construye el diagnóstico, acotado a las categorías que sobreviven |
+| 5–7/15 | **PARCIAL** — se construye, y el README declara qué clases de error no se detectan |
+| ≤ 4/15 | **STOP** — pivot a métricas de fluidez (DEC-010) |
+
+Las regex ya nacen tolerantes a artículos y palabras átonas omitidas, y `record.sh` aborta si la grabación queda por debajo de −32 dB. Los 15 casos pasan test de regresión en ambas direcciones.
 
 ```
-Resultado del spike (completar):
-small.en   → __/5 errores preservados
-medium.en  → __/5 errores preservados
-Decisión:
+Resultado ronda 2 (completar):
+mejor condición →
+sobreviven      → __/15
+por categoría   →
+Decisión        →
 ```
 
 ---
