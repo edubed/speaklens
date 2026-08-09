@@ -160,6 +160,7 @@ rankeados y un plan de estudio.
 - **Decisión**: Semana del 3 al 7 de agosto para instalar y hacer el spike sin apuro. Sábado 8 y domingo 9 para construir. **El video se graba el domingo 9**, no "después".
 - **Motivo**: Llegar al fin de semana con el riesgo técnico ya resuelto. Los proyectos mueren porque el demo nunca se graba, así que el video es entregable del fin de semana.
 - **Impacto**: El gate de Plata Juntos se corre una semana; sigue siendo el gate.
+- **Reemplazada el 2026-08-09 por DEC-020** (una hora por día). El seguimiento de abajo se conserva como registro del deslizamiento.
 - **Seguimiento 2026-08-09**: **El cronograma no se cumplió.** La semana de prep (3–7/8) no se hizo y el sábado 8 tampoco. El domingo 9 se usó para cerrar la autoría pendiente — consignas y listas CEFR, ambas ya versionadas — pero no se escribió código de producto. Lo único que sigue bloqueado de la prep es el YAML del currículum, que necesita LanguageTool y Ollama instalados. **Falta fijar fecha nueva de construcción**; el candidato natural es el fin de semana del 15–16/8. Se deja registrado en vez de reescribir la fecha original, porque el patrón de deslizamiento es información y el timebox sólo sirve si se anota cuando falla.
 
 ### **DEC-017: Normalización de loudness obligatoria antes de transcribir**
@@ -185,6 +186,14 @@ rankeados y un plan de estudio.
 - **Decisión**: Registrar estos desacuerdos en lugar de descartarlos. Cuando varios modelos coinciden en escuchar otra palabra, es información sobre la pronunciación del hablante.
 - **Motivo**: Es la aproximación más barata a evaluar pronunciación que existe en el sistema, y DEC-003 había descartado el scoring fonémico por costo. No reemplaza un forced aligner, pero no cuesta nada.
 - **Impacto**: Candidato a feature de v2. No entra en el fin de semana.
+
+### **DEC-020: Una hora por día en lugar de un fin de semana en bloque**
+
+- **Fecha**: 2026-08-09
+- **Contexto**: El bloque de fin de semana de DEC-016 no se cumplió: la semana de prep no se hizo y el sábado 8 pasó sin código. El usuario propuso avanzar una hora por día sin fecha de cierre fijada.
+- **Decisión**: Se adopta la cadencia diaria, con un entregable definido por sesión listado en `docs/daily-plan.md`. Se conserva DEC-012: el esqueleto caminante sigue siendo lo primero, y "hora 6" pasa a ser "día 2".
+- **Motivo**: Sostenida, la cadencia diaria entrega más horas por semana que un bloque de fin de semana (≈7 contra 8–12 una sola vez), y encaja mejor con un proyecto que compite con Plata Juntos. El costo es el cambio de contexto: sin un entregable definido de antemano, una sesión de una hora pierde ~15 minutos en reorientarse. De ahí que el plan diario sea parte de la decisión y no un anexo.
+- **Impacto**: Sin fecha de entrega, desaparece la presión que garantizaba que el video se grabara. Se compensa de dos formas: el video es el entregable del día 10 y no un "después", y **tres días sin avance se tratan como señal de replanificar**, no como una pausa. El contrato de alcance sigue siendo el video de 2 minutos (DEC-002).
 
 ---
 

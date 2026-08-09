@@ -1,0 +1,37 @@
+# Plan diario — 1 hora por día
+
+Reemplaza el fin de semana en bloque de DEC-016, que no se cumplió.
+
+**La regla:** cada sesión tiene un entregable definido *antes* de sentarse, y termina
+nombrando el de mañana. En sesiones de una hora, arrancar sin saber qué vas a hacer te
+cuesta 15 minutos de reorientación — un cuarto de la sesión.
+
+**Se mantiene DEC-012:** el esqueleto caminante es lo primero. Nada de UI, nada de nivel
+CEFR, nada lindo hasta que el camino punta a punta exista aunque sea por terminal. En esta
+cadencia, "hora 6" pasa a ser "día 2".
+
+| Día | Entregable | Termina cuando |
+|----|-----------|---------------|
+| 0 | Instalaciones: Ollama, Java, LanguageTool | `ollama run` responde y LanguageTool detecta un error sin red |
+| 1 | LanguageTool sobre texto | Un script recibe la transcripción del spike y lista los errores con su categoría |
+| 2 | **Esqueleto caminante (DEC-012)** | `record → normalize → whisper → languagetool → errores por terminal`, todo de una corrida |
+| 3 | Métricas de fluidez (DEC-010) | Pausas/min, muletillas, palabras/min y largo medio de tramo, desde los timestamps |
+| 4 | Estimación de nivel (DEC-005) | Un número CEFR calculado con CEFR-J + wordfreq, defendible y reproducible |
+| 5 | Persistencia y ranking (DEC-006) | SQLite guarda errores; la misma función corre con n=1 y con n=N |
+| 6 | Currículum congelado (DEC-009) | YAML versionado, generado una vez por el LLM y revisado a mano |
+| 7 | Explicaciones en español (DEC-004) | El LLM explica un error ya detectado; LanguageTool sigue siendo quien detecta |
+| 8 | Informe en pantalla | La web local muestra nivel, errores rankeados y plan. Fea pero completa |
+| 9 | `setup.sh` (DEC-015) | Alguien que clona el repo puede correrlo |
+| 10 | README + **video** | Los 2 minutos grabados. No es opcional (DEC-002) |
+
+Unas dos semanas de días hábiles. Al terminar cada sesión, anotá en una línea qué quedó y
+cuál es el entregable de mañana.
+
+## Los dos riesgos de esta cadencia
+
+**Deriva de alcance.** Con más días, más tentación de agregar cosas. El contrato sigue
+siendo el video de 2 minutos (DEC-002): lo que no aparece en pantalla, no se construye.
+
+**Abandono silencioso.** Los hábitos diarios de proyectos personales mueren más rápido que
+los bloques de fin de semana, y sin fecha límite nadie avisa. Si pasan tres días sin
+avance, no es una pausa: es la señal de replanificar en serio.
