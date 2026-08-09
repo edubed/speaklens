@@ -5,7 +5,7 @@ una vez para no volver a explicarlos. Orden de aparición.
 
 ---
 
-## Taxonomía (capa de indirección)
+## Taxonomía (capa de indirección) ✅ entendido 2026-08-09
 
 **Qué es.** Una lista intermedia entre dos cosas que cambian a ritmos distintos. En vez
 de conectar A con B directamente, conectás A con la lista y la lista con B. Acá: en vez

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Rules for LanguageTool when the user's native language is Spanish.
+
+LanguageTool ships grammar-l2-de.xml and grammar-l2-fr.xml but has no Spanish
+equivalent, which is why setting mother_tongue='es' changed nothing: the file it
+would load does not exist. This is that file.
+
+Messages are in English, matching LanguageTool's own convention, so the file
+could be proposed upstream. SpeakLens shows its Spanish explanation from
+data/themes.yaml instead of from these messages.
+-->
+<rules lang="en" idprefix="L2_">
+
+    <category id="GRAMMAR" name="Grammar" type="grammar">
+
+        <!--
+            Spanish drops the article before a profession ("soy ingeniero"), so
+            "I am engineer" is one of the most frequent Spanish-speaker errors.
+            Split by initial sound because a/an is decided phonetically.
+        -->
+        <rule id="ES_ARTICLE_JOB_AN" name="I am engineer (an)">
+            <pattern>
+                <token inflected="yes">be</token>
+                <token regexp="yes">engineer|architect|artist|accountant|editor|analyst|author|electrician|economist|actor</token>
+            </pattern>
+            <message>Spanish drops the article before a profession, but English requires one: <suggestion>\1 an \2</suggestion>.</message>
+            <example correction="am an engineer">I <marker>am engineer</marker>.</example>
+            <example>I am an engineer.</example>
+        </rule>
+
+        <rule id="ES_ARTICLE_JOB_A" name="I am teacher (a)">
+            <pattern>
+                <token inflected="yes">be</token>
+                <token regexp="yes">teacher|doctor|student|developer|designer|lawyer|nurse|writer|manager|programmer|journalist|consultant|dentist|farmer|waiter|salesman|secretary|translator</token>
+            </pattern>
+            <message>Spanish drops the article before a profession, but English requires one: <suggestion>\1 a \2</suggestion>.</message>
+            <example correction="am a teacher">I <marker>am teacher</marker>.</example>
+            <example>She is a teacher.</example>
+        </rule>
+
+        <!--
+            The mirror image: Spanish keeps the definite article when speaking in
+            general ("la vida es difícil"), English drops it. Anchored to sentence
+            start so that "the life I chose is hard" is not flagged.
+        -->
+        <rule id="ES_SPURIOUS_THE_ABSTRACT" name="The life is difficult">
+            <pattern>
+                <token postag="SENT_START"/>
+                <token>the</token>
+                <token regexp="yes">life|love|happiness|money|time|history|nature|society|technology|music|art|science|education|work|freedom|politics</token>
+                <token regexp="yes">is|was|are|were</token>
+            </pattern>
+            <message>When speaking in general, English drops the definite article that Spanish keeps: <suggestion>\3 \4</suggestion>.</message>
+            <example correction="Life is">
+                <marker>The life is</marker> difficult.
+            </example>
+            <example>The life I chose is difficult.</example>
+        </rule>
+
+        <!--
+            Spanish marks questions with intonation alone, so the subject-auxiliary
+            inversion English requires gets skipped. Anchored to sentence start so
+            embedded clauses ("I know where you are going") are not flagged.
+        -->
+        <rule id="ES_QUESTION_WORD_ORDER_BE" name="Where you are going">
+            <pattern>
+                <token postag="SENT_START"/>
+                <token regexp="yes">where|what|when|why|how|who</token>
+                <token regexp="yes">you|he|she|it|they|we|i</token>
+                <token regexp="yes">is|are|am|was|were</token>
+            </pattern>
+            <message>English questions need the auxiliary before the subject, which Spanish does not: <suggestion>\2 \4 \3</suggestion>.</message>
+            <example correction="Where are you">
+                <marker>Where you are</marker> going?
+            </example>
+            <example>Where are you going?</example>
+            <example>I know where you are going.</example>
+        </rule>
+
+    </category>
+
+</rules>

@@ -65,3 +65,64 @@ intento corto. Es trabajo de una sesión entera, no de cinco minutos.
 
 **Recomendación: A, y C igual.** Las reglas propias cubren lo que más duele, y el README
 declara lo que quede afuera. B queda descartada salvo que A falle.
+
+---
+
+# Resuelto — 2026-08-09 · de 9/15 a 11/15
+
+Se eligió escribir reglas propias acotadas a **artículos y orden de preguntas**.
+
+## El descubrimiento
+
+LanguageTool ya trae `grammar-l2-de.xml` y `grammar-l2-fr.xml`: **archivos de reglas
+específicos para hablantes de alemán y francés que aprenden inglés**. No existe el de
+español. Por eso `mother_tongue='es'` no cambiaba nada — el archivo que cargaría no está.
+
+O sea que el mecanismo no había que inventarlo: existe, es de primera clase en
+LanguageTool, y lo que falta es el archivo. `rules/grammar-l2-es.xml` es ese archivo.
+
+## Cómo se instala, y por qué así
+
+Se probaron tres vías:
+
+| Vía | Resultado |
+|---|---|
+| Clave `rulesFile` de configuración | El cliente la acepta pero las reglas nunca se registran |
+| Dejar el archivo como `grammar-l2-es.xml` | Ignorado: la lista de lenguas maternas con archivo propio está fija en el código de LanguageTool |
+| **Inyectar las reglas en `en/grammar.xml`** | **Funciona** |
+
+Se verificó que el mecanismo era sano antes de elegir: se pusieron las reglas españolas en
+el lugar del archivo alemán y dispararon las tres. El problema nunca fue el XML sino que
+`es` no está en la lista de idiomas soportados.
+
+`scripts/install_rules.py` hace la inyección: respalda el archivo original una vez, envuelve
+lo agregado entre comentarios marcadores, es idempotente y tiene `--remove`. Hay que
+volver a correrlo después de reinstalar LanguageTool, y `setup.sh` lo hace (DEC-015).
+
+## Cobertura nueva
+
+| # | Frase | Antes | Ahora |
+|---|---|---|---|
+| 13 | I am **engineer** | ciego | `ES_ARTICLE_JOB_AN` → *am an engineer* |
+| 14 | **The life** is difficult | ciego | `ES_SPURIOUS_THE_ABSTRACT` → *Life is* |
+| 15 | **Where you are** going? | ciego | `ES_QUESTION_WORD_ORDER_BE` → *Where are you* |
+
+Los negativos difíciles no se marcan: *"I know where you are going"*, *"The life I chose is
+difficult"*, *"Life is difficult"*, *"I am an engineer"*.
+
+El caso 7 pasó a contarse como ciego, que es lo honesto: siempre lo fue, sólo que antes el
+falso acierto de ortografía lo tapaba.
+
+## Lo que sigue ciego
+
+| # | Frase | Clase | Nota |
+|---|---|---|---|
+| 1 | Yesterday I **go** to the meeting | tiempo verbal con adverbio | La más difícil de expresar como patrón: exige relacionar el adverbio con el verbo |
+| 7 | I **have** thirty two **years old** | calco de *tener* | ⬅ familia barata |
+| 9 | I **have hungry** | calco de *tener* | ⬅ familia barata |
+| 12 | She **arrived to** the airport | preposición según verbo | Una regla por verbo; se agregan de a poco |
+
+**Próxima ganancia obvia:** los casos 7 y 9 son el mismo patrón — *tener* traducido como
+*have* donde el inglés usa *be*: "I have hungry", "I have 32 years old", "I have cold",
+"I have reason", "I have sleep". Es **una sola familia de reglas** y sube la cobertura a
+13/15. Queda fuera del alcance acordado para esta sesión, pero es lo primero de la próxima.

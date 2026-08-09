@@ -32,7 +32,8 @@ themes:
       sin artículo, pero el inglés exige "I am AN engineer". Y al revés: decimos
       "la vida es difícil" con artículo, pero el inglés dice "life is difficult"
       sin él, porque habla de la vida en general.
-    rules: [EN_A_VS_AN, DT_DT, MISSING_DETERMINER]
+    rules: [EN_A_VS_AN, DT_DT, MISSING_DETERMINER,
+            ES_ARTICLE_JOB_A, ES_ARTICLE_JOB_AN, ES_SPURIOUS_THE_ABSTRACT]
     categories: []
 
   - id: orden_palabras
@@ -43,7 +44,7 @@ themes:
       En español una pregunta se marca con la entonación: "¿dónde vos vas?" se
       entiende. El inglés necesita mover el auxiliar delante del sujeto:
       "where ARE YOU going", no "where you are going".
-    rules: []
+    rules: [ES_QUESTION_WORD_ORDER_BE]
     categories: []
 
   - id: tiempos_verbales
