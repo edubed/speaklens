@@ -12,14 +12,14 @@ cadencia, "hora 6" pasa a ser "día 2".
 
 | Día | Entregable | Termina cuando |
 |----|-----------|---------------|
-| 0 | Instalaciones: Ollama, Java, LanguageTool | `ollama run` responde y LanguageTool detecta un error sin red |
-| 1 | LanguageTool sobre texto | Un script recibe la transcripción del spike y lista los errores con su categoría |
+| ~~0~~ | ~~Instalaciones~~ ✅ **hecho 9/8** | Ollama + `qwen3:4b`, OpenJDK 26, LanguageTool 6.8. Ver hallazgos abajo |
+| 1 | **Reglas propias de LanguageTool** (ver `languagetool-coverage.md`) | Las 6 clases ciegas se detectan, o queda documentado por qué no |
 | 2 | **Esqueleto caminante (DEC-012)** | `record → normalize → whisper → languagetool → errores por terminal`, todo de una corrida |
 | 3 | Métricas de fluidez (DEC-010) | Pausas/min, muletillas, palabras/min y largo medio de tramo, desde los timestamps |
 | 4 | Estimación de nivel (DEC-005) | Un número CEFR calculado con CEFR-J + wordfreq, defendible y reproducible |
 | 5 | Persistencia y ranking (DEC-006) | SQLite guarda errores; la misma función corre con n=1 y con n=N |
 | 6 | Currículum congelado (DEC-009) | YAML versionado, generado una vez por el LLM y revisado a mano |
-| 7 | Explicaciones en español (DEC-004) | El LLM explica un error ya detectado; LanguageTool sigue siendo quien detecta |
+| 7 | Explicaciones precomputadas (DEC-021) | YAML con una explicación revisada por `rule_id`; en runtime es un lookup, no una llamada al LLM |
 | 8 | Informe en pantalla | La web local muestra nivel, errores rankeados y plan. Fea pero completa |
 | 9 | `setup.sh` (DEC-015) | Alguien que clona el repo puede correrlo |
 | 10 | README + **video** | Los 2 minutos grabados. No es opcional (DEC-002) |

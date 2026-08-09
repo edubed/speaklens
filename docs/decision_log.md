@@ -195,6 +195,14 @@ rankeados y un plan de estudio.
 - **Motivo**: Sostenida, la cadencia diaria entrega más horas por semana que un bloque de fin de semana (≈7 contra 8–12 una sola vez), y encaja mejor con un proyecto que compite con Plata Juntos. El costo es el cambio de contexto: sin un entregable definido de antemano, una sesión de una hora pierde ~15 minutos en reorientarse. De ahí que el plan diario sea parte de la decisión y no un anexo.
 - **Impacto**: Sin fecha de entrega, desaparece la presión que garantizaba que el video se grabara. Se compensa de dos formas: el video es el entregable del día 10 y no un "después", y **tres días sin avance se tratan como señal de replanificar**, no como una pausa. El contrato de alcance sigue siendo el video de 2 minutos (DEC-002).
 
+### **DEC-021: Las explicaciones se precomputan por regla; el LLM no corre en tiempo de ejecución**
+
+- **Fecha**: 2026-08-09
+- **Contexto**: Medido en la máquina real, `qwen3:4b` tardó **89 s** en explicar un solo error — es un modelo de razonamiento y emitió 1.646 tokens de cadena de pensamiento antes de dos frases de respuesta. El sufijo `/no_think` lo bajó a 48 s, todavía inviable: un diagnóstico con 15 errores tardaría entre 12 y 22 minutos.
+- **Decisión**: Las explicaciones se generan **una sola vez por `rule_id` de LanguageTool**, se revisan a mano y se versionan como YAML. En ejecución es un lookup de diccionario. Si aparece una regla sin entrada, se muestra el `message` propio de LanguageTool como respaldo.
+- **Motivo**: Los `rule_id` son un conjunto cerrado y la explicación de una regla no depende del hablante ni de la frase, así que generarla por request es recomputar siempre lo mismo pagando 48 s. Es exactamente el razonamiento de DEC-009 aplicado a DEC-004: si el contenido no varía por usuario, es data, no inferencia.
+- **Impacto**: Latencia de explicación pasa de ~48 s a ~0. Desaparece la alucinación en runtime, porque cada texto pasó por revisión humana antes de entrar al repo. **El LLM local deja de correr en tiempo de ejecución y pasa a ser herramienta de build.** Para el portfolio esto no debilita la historia sino que la mejora: medir, descubrir que la latencia es inaceptable y mover el cómputo a build-time es mejor ingeniería que llamar a un modelo y aguantar. El modelo sigue corriendo local en 8 GB, sólo que una vez.
+
 ---
 
 ## **Decisiones Pendientes**
