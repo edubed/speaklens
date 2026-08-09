@@ -114,14 +114,9 @@ pip install language-tool-python fastapi uvicorn
 
 ## 3. Contenido a redactar (1 h)
 
-- [ ] **Las 4–5 consignas de elicitación** (DEC-008). Cada una debe forzar una estructura:
-  - pasado simple — "Contame qué hiciste el fin de semana pasado"
-  - condicional — "¿Qué harías si te ofrecieran un trabajo en Madrid?"
-  - presente perfecto — "¿Qué proyectos hiciste que te enorgullezcan?"
-  - comparativos — "Compará tu trabajo actual con uno anterior"
-  - futuro — "¿Dónde te ves en dos años?"
-- [ ] **Listas de frecuencia CEFR** para DEC-005. Buscar wordlists públicas (CEFR-J, English Vocabulary Profile) y dejarlas en `data/`.
-- [ ] **El YAML del currículum** (DEC-009): correr el LLM una vez sobre las ~10 categorías más comunes de LanguageTool, revisar a mano, versionar.
+- [x] **Las 5 consignas de elicitación** (DEC-008) — en `data/prompts.yaml`. Cada una fuerza una estructura (pasado, condicional, presente perfecto, comparativos, futuro), apunta a 25 s, e incluye un warm-up sin puntuar para que la vacilación de arranque no contamine la línea base de fluidez. Están redactadas como preguntas de entrevista laboral, así que la práctica sirve dos veces. **Falta que Edu las lea y las apruebe.**
+- [x] **Listas de frecuencia CEFR** (DEC-005) — `data/cefrj-vocabulary-profile-1.5.csv`, 7.798 palabras A1–B2, más `wordfreq` para las que no figuran. Procedencia y atribución en `data/README.md`. Verificado: el Zipf mediano baja monótonamente A1→B2, o sea que niveles y frecuencias concuerdan. Techo en B2.
+- [ ] **El YAML del currículum** (DEC-009): correr el LLM una vez sobre las ~10 categorías más comunes de LanguageTool, revisar a mano, versionar. **Bloqueado**: requiere LanguageTool y Ollama instalados, que todavía no lo están.
 
 ---
 

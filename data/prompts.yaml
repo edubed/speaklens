@@ -1,0 +1,72 @@
+# Elicitation prompts (DEC-008)
+#
+# Free speech produces an inflated diagnostic: learners unconsciously avoid the
+# structures they are unsure about, so whatever they never attempt never gets
+# measured. These five prompts each force a specific grammatical structure, which
+# also makes the demo reproducible — anyone who clones the repo answers the same
+# five questions.
+#
+# Each prompt targets ~25 seconds of speech, for about two minutes in total.
+#
+# The prompts double as job-interview practice on purpose: the questions are the
+# ones a hiring manager actually asks, so the practice is not wasted (DEC-001).
+#
+# `watch` lists the LanguageTool rule categories most likely to fire on each
+# prompt. It is used to check coverage, never to filter detections — a mistake
+# outside the expected category still counts.
+
+version: 1
+target_seconds_per_prompt: 25
+
+prompts:
+  - id: past_narrative
+    order: 1
+    targets: [past simple, past continuous]
+    text: >-
+      Tell me about the last project you finished.
+      What did you build, and what went wrong along the way?
+    hint_es: Contá el último proyecto que terminaste y qué salió mal.
+    watch: [GRAMMAR, VERB_FORM, TENSE_AGREEMENT]
+
+  - id: hypothetical
+    order: 2
+    targets: [second conditional, modal verbs]
+    text: >-
+      Imagine a company in Madrid offers you a job tomorrow.
+      What would you need to sort out before you could say yes?
+    hint_es: Si mañana te ofrecieran trabajo en Madrid, ¿qué tendrías que resolver antes de aceptar?
+    watch: [GRAMMAR, VERB_FORM, CONFUSED_WORDS]
+
+  - id: experience
+    order: 3
+    targets: [present perfect, present perfect vs past simple]
+    text: >-
+      What have you learned in the last year that you did not know before?
+      Has it changed how you work?
+    hint_es: ¿Qué aprendiste en el último año que no sabías antes? ¿Te cambió la forma de trabajar?
+    watch: [GRAMMAR, VERB_FORM, TENSE_AGREEMENT]
+
+  - id: comparison
+    order: 4
+    targets: [comparatives, superlatives, subordinate clauses]
+    text: >-
+      Compare working remotely with working in an office.
+      Which one suits you better, and why?
+    hint_es: Compará trabajar remoto con trabajar en oficina. ¿Cuál te va mejor y por qué?
+    watch: [GRAMMAR, COMPARISONS, MISC]
+
+  - id: plans
+    order: 5
+    targets: [future forms, infinitive of purpose]
+    text: >-
+      Where do you want to be professionally in two years,
+      and what are you going to do to get there?
+    hint_es: ¿Dónde querés estar profesionalmente en dos años y qué vas a hacer para lograrlo?
+    watch: [GRAMMAR, VERB_FORM, PREPOSITIONS]
+
+# Read before the first prompt, never scored. Its only job is to get the speaker
+# talking so that prompt 1 is not contaminated by warm-up hesitation, which would
+# corrupt the fluency baseline (DEC-010).
+warm_up:
+  text: In one sentence, what did you have for breakfast today?
+  scored: false

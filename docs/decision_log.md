@@ -160,6 +160,7 @@ rankeados y un plan de estudio.
 - **Decisión**: Semana del 3 al 7 de agosto para instalar y hacer el spike sin apuro. Sábado 8 y domingo 9 para construir. **El video se graba el domingo 9**, no "después".
 - **Motivo**: Llegar al fin de semana con el riesgo técnico ya resuelto. Los proyectos mueren porque el demo nunca se graba, así que el video es entregable del fin de semana.
 - **Impacto**: El gate de Plata Juntos se corre una semana; sigue siendo el gate.
+- **Seguimiento 2026-08-09**: **El cronograma no se cumplió.** La semana de prep (3–7/8) no se hizo y el sábado 8 tampoco. El domingo 9 se usó para cerrar la autoría pendiente — consignas y listas CEFR, ambas ya versionadas — pero no se escribió código de producto. Lo único que sigue bloqueado de la prep es el YAML del currículum, que necesita LanguageTool y Ollama instalados. **Falta fijar fecha nueva de construcción**; el candidato natural es el fin de semana del 15–16/8. Se deja registrado en vez de reescribir la fecha original, porque el patrón de deslizamiento es información y el timebox sólo sirve si se anota cuando falla.
 
 ### **DEC-017: Normalización de loudness obligatoria antes de transcribir**
 
