@@ -18,14 +18,34 @@
 version: 1
 target_seconds_per_prompt: 25
 
+# WORDING RULES — the prompt must never be the hard part.
+#
+# A first draft tested at roughly 80% comprehension for the target user. Measured
+# against the CEFR-J profile, its vocabulary was already A1-B1, so the difficulty
+# was not lexical: it came from phrasal verbs and idioms ("sort out", "along the
+# way", "suits you better", "get there"), which single-word level lists do not
+# capture, and from packing two questions into one prompt.
+#
+# A misunderstood prompt produces a hesitant, off-topic answer, and the fluency
+# metrics then score comprehension failure as disfluency (DEC-010). The prompt is
+# measurement apparatus, not content: it must be invisible.
+#
+#   - one question per prompt
+#   - no phrasal verbs, no idioms
+#   - short clauses, concrete nouns
+#   - difficulty NEVER escalates here; see `scope` note at the bottom of this file
+#
+# Target structures are unchanged: they come from what the question asks the
+# speaker to DO, not from how hard its wording is.
+
 prompts:
   - id: past_narrative
     order: 1
     targets: [past simple, past continuous]
     text: >-
-      Tell me about the last project you finished.
-      What did you build, and what went wrong along the way?
-    hint_es: Contá el último proyecto que terminaste y qué salió mal.
+      Think about the last project you finished.
+      What did you do, and what was difficult?
+    hint_es: Pensá en el último proyecto que terminaste. ¿Qué hiciste y qué fue difícil?
     watch: [GRAMMAR, VERB_FORM, TENSE_AGREEMENT]
 
   - id: hypothetical
@@ -33,40 +53,52 @@ prompts:
     targets: [second conditional, modal verbs]
     text: >-
       Imagine a company in Madrid offers you a job tomorrow.
-      What would you need to sort out before you could say yes?
-    hint_es: Si mañana te ofrecieran trabajo en Madrid, ¿qué tendrías que resolver antes de aceptar?
+      What would you change in your life?
+    hint_es: Imaginá que mañana una empresa de Madrid te ofrece trabajo. ¿Qué cambiarías en tu vida?
     watch: [GRAMMAR, VERB_FORM, CONFUSED_WORDS]
 
   - id: experience
     order: 3
     targets: [present perfect, present perfect vs past simple]
     text: >-
-      What have you learned in the last year that you did not know before?
-      Has it changed how you work?
-    hint_es: ¿Qué aprendiste en el último año que no sabías antes? ¿Te cambió la forma de trabajar?
+      What have you learned this year that you did not know before?
+    hint_es: ¿Qué aprendiste este año que no sabías antes?
     watch: [GRAMMAR, VERB_FORM, TENSE_AGREEMENT]
 
   - id: comparison
     order: 4
     targets: [comparatives, superlatives, subordinate clauses]
     text: >-
-      Compare working remotely with working in an office.
-      Which one suits you better, and why?
-    hint_es: Compará trabajar remoto con trabajar en oficina. ¿Cuál te va mejor y por qué?
+      Is it better to work at home or in an office?
+      Tell me why.
+    hint_es: ¿Es mejor trabajar en casa o en una oficina? Contame por qué.
     watch: [GRAMMAR, COMPARISONS, MISC]
 
   - id: plans
     order: 5
     targets: [future forms, infinitive of purpose]
     text: >-
-      Where do you want to be professionally in two years,
-      and what are you going to do to get there?
-    hint_es: ¿Dónde querés estar profesionalmente en dos años y qué vas a hacer para lograrlo?
+      What are you going to do in the next two years?
+    hint_es: ¿Qué vas a hacer en los próximos dos años?
     watch: [GRAMMAR, VERB_FORM, PREPOSITIONS]
 
 # Read before the first prompt, never scored. Its only job is to get the speaker
 # talking so that prompt 1 is not contaminated by warm-up hesitation, which would
 # corrupt the fluency baseline (DEC-010).
 warm_up:
-  text: In one sentence, what did you have for breakfast today?
+  text: In one sentence, what did you eat for breakfast today?
   scored: false
+
+# Why difficulty is fixed here, and where it is allowed to grow instead.
+#
+# These five prompts are a measuring instrument. If they get harder as the learner
+# improves, session 1 and session 30 are no longer comparable, because the ruler
+# changed between them — and the error map that accumulates over time (DEC-006)
+# stops meaning anything.
+#
+# Escalating difficulty is the right idea in the wrong place: it belongs to
+# practice content, which is free to grow with the learner, not to the diagnostic.
+# Deferred to v2.
+scope:
+  fixed_instrument: true
+  escalating_difficulty: v2, in practice content only
