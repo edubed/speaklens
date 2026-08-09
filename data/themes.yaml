@@ -1,0 +1,143 @@
+# Taxonomía de temas gramaticales
+#
+# Una sola lista de temas sirve a tres cosas que antes se resolvían por separado:
+#
+#   1. Las explicaciones en español (DEC-021) se escriben una por TEMA, no una por
+#      regla. LanguageTool tiene cientos de reglas; temas hay quince.
+#   2. Las unidades del currículum (DEC-009) son estos mismos temas.
+#   3. El mapa de errores (DEC-006) se rankea por tema, porque "los artículos son tu
+#      punto débil" es accionable y "disparaste EN_A_VS_AN cuatro veces" no lo es.
+#
+# La explicación de POR QUÉ está mal vive acá, en el tema, escrita y revisada a mano.
+# La corrección concreta de CADA frase la produce LanguageTool sola. Así hay
+# especificidad sin pagar autoría por regla.
+#
+# `rules` no puede ser exhaustivo — LanguageTool tiene cientos y aparecen reglas
+# nuevas al usarlo. Se mapea lo que va apareciendo y el resto cae en `otros`, que
+# funciona como bandeja de entrada: lo que se acumule ahí se clasifica después.
+#
+# `noise: true` marca lo que NO es error de aprendiz y no debe ensuciar el mapa.
+# El caso 7 del spike lo mostró: LanguageTool marcó que "thirty-two" va con guion,
+# no el calco "I have X years old". Detectó algo, pero no lo que importaba.
+
+version: 1
+
+themes:
+  - id: articulos
+    name_es: Artículos
+    priority: 1
+    blind_spot: true
+    why_es: >-
+      El español usa los artículos distinto que el inglés. Decimos "soy ingeniero"
+      sin artículo, pero el inglés exige "I am AN engineer". Y al revés: decimos
+      "la vida es difícil" con artículo, pero el inglés dice "life is difficult"
+      sin él, porque habla de la vida en general.
+    rules: [EN_A_VS_AN, DT_DT, MISSING_DETERMINER]
+    categories: []
+
+  - id: orden_palabras
+    name_es: Orden de las palabras
+    priority: 2
+    blind_spot: true
+    why_es: >-
+      En español una pregunta se marca con la entonación: "¿dónde vos vas?" se
+      entiende. El inglés necesita mover el auxiliar delante del sujeto:
+      "where ARE YOU going", no "where you are going".
+    rules: []
+    categories: []
+
+  - id: tiempos_verbales
+    name_es: Tiempos verbales
+    priority: 3
+    blind_spot: partial   # detecta "didn't went", NO detecta "yesterday I go"
+    why_es: >-
+      El inglés marca el pasado en el verbo aunque la frase ya tenga una palabra
+      que indique tiempo. "Yesterday I go" no alcanza: hay que decir "yesterday I
+      went", aunque "yesterday" ya diga que fue ayer.
+    rules: [AUXILIARY_DO_WITH_INCORRECT_VERB_FORM, VERB_FORM, TENSE_AGREEMENT]
+    categories: []
+
+  - id: concordancia
+    name_es: Concordancia sujeto-verbo
+    priority: 4
+    blind_spot: false
+    why_es: >-
+      En inglés la tercera persona del singular lleva una -s que el español no
+      tiene: "she likes", "he has". Y en negativo eso se traslada al auxiliar:
+      "she doesn't like", no "she don't like".
+    rules: [HE_VERB_AGR, AGREEMENT_SENT_START, SUBJECT_VERB_AGREEMENT]
+    categories: []
+
+  - id: preposiciones
+    name_es: Preposiciones
+    priority: 5
+    blind_spot: partial   # detecta "depend of", NO detecta "arrived to"
+    why_es: >-
+      Cada verbo inglés pide su preposición y casi nunca coincide con la del
+      español. "Depender DE" es "depend ON", "llegar A" es "arrive AT". No hay
+      regla general: se aprenden de a uno.
+    rules: [EXPLAIN_TO, DEPEND_ON, PREPOSITION_VERB]
+    categories: []
+
+  - id: calcos
+    name_es: Calcos del español
+    priority: 6
+    blind_spot: partial   # detecta "I am agree", NO detecta "I have hungry"
+    why_es: >-
+      Frases traducidas literalmente que en inglés no existen. "Tengo hambre" no
+      es "I have hungry" sino "I am hungry"; "estoy de acuerdo" no es "I am agree"
+      sino "I agree"; "tengo 32 años" no es "I have 32 years" sino "I am 32".
+    rules: [I_AM_VB]
+    categories: []
+
+  - id: comparativos
+    name_es: Comparativos y superlativos
+    priority: 7
+    blind_spot: false
+    why_es: >-
+      El inglés usa -er/-est en palabras cortas y more/most en las largas, donde el
+      español usa siempre "más". "More big" está mal: es "bigger".
+    rules: [COMP_THAN, SUPERLATIVE]
+    categories: []
+
+  - id: plurales
+    name_es: Plurales y contables
+    priority: 8
+    blind_spot: false
+    why_es: >-
+      Hay sustantivos que en español se cuentan y en inglés no. "Un consejo" es
+      "a piece of advice", no "an advice"; "informaciones" no existe.
+    rules: [PLURAL_VERB_AFTER_THIS, MASS_AGREEMENT]
+    categories: []
+
+  - id: pronombres
+    name_es: Pronombres
+    priority: 9
+    blind_spot: false
+    why_es: >-
+      El español omite el sujeto porque el verbo ya lo dice: "está lloviendo". El
+      inglés lo exige siempre: "IT is raining".
+    rules: [PRP_VB, MISSING_SUBJECT]
+    categories: []
+
+  # --- No son errores de aprendiz: no entran al mapa ---
+
+  - id: ortografia
+    name_es: Ortografía y tipografía
+    priority: 99
+    noise: true
+    why_es: >-
+      Guiones, mayúsculas y espaciado. Al hablar no existen: los introduce el
+      transcriptor, no vos. Se excluyen del diagnóstico.
+    rules: [EN_COMPOUNDS_THIRTY_TWO]
+    categories: [TYPOGRAPHY, CASING, TYPOS]
+
+  - id: otros
+    name_es: Sin clasificar
+    priority: 100
+    inbox: true
+    why_es: >-
+      Bandeja de entrada. Toda regla que aparezca y no esté mapeada cae acá, y se
+      clasifica cuando se acumule lo suficiente como para justificar un tema.
+    rules: []
+    categories: []
