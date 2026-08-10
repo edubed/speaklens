@@ -16,7 +16,7 @@ cadencia, "hora 6" pasa a ser "día 2".
 | ~~1~~ | ~~Reglas propias de LanguageTool~~ ✅ **hecho 9/8** | `rules/grammar-l2-es.xml` + `install_rules.py`. Cobertura 9/15 → 11/15 |
 | ~~2~~ | ~~Esqueleto caminante (DEC-012)~~ ✅ **hecho 9/8** | `python -m speaklens.cli <audio>` corre el camino entero. 11 errores en 6 temas |
 | ~~3~~ | ~~Métricas de fluidez (DEC-010)~~ ✅ **hecho 9/8** | `speaklens/fluency.py`. Pendiente: validarlas con una grabación espontánea, no leída |
-| 4 | Estimación de nivel (DEC-005) | Un número CEFR calculado con CEFR-J + wordfreq, defendible y reproducible |
+| ~~4~~ | ~~Estimación de nivel (DEC-005)~~ ✅ **hecho 9/8** | `speaklens/level.py`. Se abstiene bajo 40 palabras de contenido. Checks en `tests/check.py` |
 | 5 | Persistencia y ranking (DEC-006) | SQLite guarda errores; la misma función corre con n=1 y con n=N |
 | 6 | Currículum congelado (DEC-009) | YAML versionado, generado una vez por el LLM y revisado a mano |
 | 7 | Explicaciones precomputadas (DEC-021) | YAML con una explicación revisada por `rule_id`; en runtime es un lookup, no una llamada al LLM |

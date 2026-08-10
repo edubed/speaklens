@@ -15,6 +15,7 @@ from pathlib import Path
 
 from . import detect as detector
 from . import fluency as fluency_meter
+from . import level as level_estimator
 from . import themes as taxonomy
 from . import transcribe as transcriber
 
@@ -47,6 +48,11 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  {f.silence_ratio:5.0%}  del tiempo en silencio")
     print(f"  {f.fillers:5d}  muletillas de duda, {f.crutches} de relleno")
     for line in f.summary_es():
+        print(f"    - {line}")
+    print()
+
+    print("nivel:")
+    for line in level_estimator.estimate(transcript.text).summary_es():
         print(f"    - {line}")
     print()
 
