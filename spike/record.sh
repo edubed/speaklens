@@ -35,10 +35,14 @@ if [[ "${1:-}" == "--prompt" ]]; then
   OUT="$DIR/audio/answer.wav"
 
   mkdir -p "$DIR/audio"
-  "$PYTHON" - "$INDEX" <<'PY'
+  # The prompts file is located from $ROOT rather than from __file__: this script
+  # is piped into Python on stdin, where __file__ is "<stdin>" and resolves to the
+  # working directory instead of to this file.
+  "$PYTHON" - "$INDEX" "$ROOT" <<'PY'
 import sys, yaml, pathlib
-root = pathlib.Path(__file__).resolve().parent
-spec = yaml.safe_load((root.parent / "data" / "prompts.yaml").read_text(encoding="utf-8"))
+spec = yaml.safe_load(
+    (pathlib.Path(sys.argv[2]) / "data" / "prompts.yaml").read_text(encoding="utf-8")
+)
 prompt = spec["prompts"][int(sys.argv[1]) - 1]
 print(f"\n  ANSWER THIS OUT LOUD. Do not write anything down first.\n")
 print(f"    {' '.join(prompt['text'].split())}\n")
