@@ -56,22 +56,36 @@ class Transcript:
 #
 # So a boundary is inferred from a word lasting far longer than its own length can
 # account for, and the split goes BEFORE that word.
-SECONDS_PER_CHAR = 0.075   # rough speaking rate for an unhurried speaker
+# How long a word "should" take. Not purely proportional to length: every word
+# carries a fixed onset regardless of size, so a one-letter "I" would be predicted
+# at well under its real ~0.2s and the shortfall would be misread as hesitation.
+WORD_ONSET = 0.09
+PER_CHAR = 0.055
+
 SILENCE_THRESHOLD = 0.8    # excess seconds that read as a deliberate pause
 
 
-def split_on_pauses(
-    words: list[Word],
-    threshold: float = SILENCE_THRESHOLD,
-    rate: float = SECONDS_PER_CHAR,
-) -> list[str]:
+def expected_duration(text: str) -> float:
+    return WORD_ONSET + len(text) * PER_CHAR
+
+
+def leading_silence(word: Word) -> float:
+    """Silence absorbed into this word's span, before it was actually spoken.
+
+    The single definition of "there was a pause here". Sentence splitting and the
+    fluency metrics both read pauses, and if they disagreed about what counts as
+    one, the report would contradict itself.
+    """
+    return max(0.0, (word.end - word.start) - expected_duration(word.text))
+
+
+def split_on_pauses(words: list[Word], threshold: float = SILENCE_THRESHOLD) -> list[str]:
     if not words:
         return []
 
     sentences, current = [], [words[0].text]
     for word in words[1:]:
-        excess = (word.end - word.start) - len(word.text) * rate
-        if excess >= threshold and current:
+        if leading_silence(word) >= threshold and current:
             sentences.append(" ".join(current))
             current = []
         current.append(word.text)
