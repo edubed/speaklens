@@ -88,7 +88,7 @@ themes:
       Frases traducidas literalmente que en inglés no existen. "Tengo hambre" no
       es "I have hungry" sino "I am hungry"; "estoy de acuerdo" no es "I am agree"
       sino "I agree"; "tengo 32 años" no es "I have 32 years" sino "I am 32".
-    rules: [I_AM_VB]
+    rules: [I_AM_VB, HAVE_CD_YEARS_I, HAVE_CD_YEARS]
     categories: []
 
   - id: comparativos
@@ -130,8 +130,8 @@ themes:
     why_es: >-
       Guiones, mayúsculas y espaciado. Al hablar no existen: los introduce el
       transcriptor, no vos. Se excluyen del diagnóstico.
-    rules: [EN_COMPOUNDS_THIRTY_TWO]
-    categories: [TYPOGRAPHY, CASING, TYPOS]
+    rules: [EN_COMPOUNDS_THIRTY_TWO, PRP_COMMA, COMMA_PARENTHESIS_WHITESPACE]
+    categories: [TYPOGRAPHY, CASING, TYPOS, PUNCTUATION, STYLE]
 
   - id: otros
     name_es: Sin clasificar

@@ -13,8 +13,8 @@ cadencia, "hora 6" pasa a ser "día 2".
 | Día | Entregable | Termina cuando |
 |----|-----------|---------------|
 | ~~0~~ | ~~Instalaciones~~ ✅ **hecho 9/8** | Ollama + `qwen3:4b`, OpenJDK 26, LanguageTool 6.8. Ver hallazgos abajo |
-| 1 | **Reglas propias de LanguageTool** (ver `languagetool-coverage.md`) | Las 6 clases ciegas se detectan, o queda documentado por qué no |
-| 2 | **Esqueleto caminante (DEC-012)** | `record → normalize → whisper → languagetool → errores por terminal`, todo de una corrida |
+| ~~1~~ | ~~Reglas propias de LanguageTool~~ ✅ **hecho 9/8** | `rules/grammar-l2-es.xml` + `install_rules.py`. Cobertura 9/15 → 11/15 |
+| ~~2~~ | ~~Esqueleto caminante (DEC-012)~~ ✅ **hecho 9/8** | `python -m speaklens.cli <audio>` corre el camino entero. 11 errores en 6 temas |
 | 3 | Métricas de fluidez (DEC-010) | Pausas/min, muletillas, palabras/min y largo medio de tramo, desde los timestamps |
 | 4 | Estimación de nivel (DEC-005) | Un número CEFR calculado con CEFR-J + wordfreq, defendible y reproducible |
 | 5 | Persistencia y ranking (DEC-006) | SQLite guarda errores; la misma función corre con n=1 y con n=N |
