@@ -29,6 +29,11 @@ CRUTCH_WORDS = {"like", "well", "so", "actually", "basically", "you know"}
 # Below this, a gap is ordinary articulation rather than hesitation.
 PAUSE_FLOOR = 0.35
 
+# A silence longer than this is someone hunting for a word, not someone turning a
+# page. Reading produces regular short gaps between sentences; nothing in reading
+# produces a four-second stop.
+READING_PAUSE_CEILING = 4.0
+
 
 @dataclass(frozen=True)
 class Fluency:
@@ -53,11 +58,21 @@ class Fluency:
         exactly the way hesitation does — short runs, long silences, low rate —
         and the report would diagnose a stammer that does not exist.
 
-        The tell is fillers. Someone assembling a sentence while talking produces
-        "uh" and "um"; someone reading produces silence and nothing else. Long
-        silences with no fillers at all is the signature of reading.
+        The first version of this test used fillers, on the theory that someone
+        assembling a sentence says "uh" while someone reading just goes quiet. It
+        misfired on the first real sample: this speaker hesitates silently, which
+        is an ordinary style, and got told his spontaneous speech was reading.
+
+        What separates the two is how long the longest silence runs. Reading
+        produces regular, short gaps between sentences; searching for words
+        produces one or two enormous ones. Nobody reading a list stops for four
+        seconds.
         """
-        return self.silence_ratio > 0.40 and self.fillers == 0 and self.words > 20
+        return (
+            self.words > 20
+            and self.silence_ratio > 0.40
+            and self.longest_pause < READING_PAUSE_CEILING
+        )
 
     def summary_es(self) -> list[str]:
         """Plain-language readings. Thresholds are rough B1/B2 speaking norms."""
