@@ -28,3 +28,28 @@ Y baja la autoría de cientos de textos a once.
 clasificada, el usuario recibe la explicación equivocada y es difícil que alguien lo
 note. Y la categoría `otros` crece en silencio si nadie la mira: por eso está marcada
 como bandeja de entrada y no como cajón de sastre.
+
+---
+
+## Esqueleto caminante ✅ entendido 2026-08-09
+
+**Qué es.** Construir primero el camino completo de punta a punta, feo pero funcionando,
+antes que cualquier parte en detalle. No una capa entera bien hecha: una línea fina que
+atraviesa todas las capas.
+
+**Analogía.** Abrir un local. En vez de terminar la decoración, el depósito y la vidriera
+y recién ahí vender, hacés una venta completa el primer día: entra alguien, paga, se lleva
+el producto, la plata queda en la caja. Con una mesa prestada si hace falta. Lo que probás
+es que el circuito cierra.
+
+**Dónde falla la analogía.** Esa primera venta es plata real. El esqueleto caminante no le
+sirve a ningún usuario todavía, y buena parte se tira. Nadie te paga por él.
+
+**Por qué acá.** Es lo que destapó el bug de la puntuación en el día 2: la detección caía
+de 11 a 8 errores y la salida seguía pareciendo razonable. Ninguna prueba de LanguageTool
+por su cuenta lo habría mostrado, porque el defecto vivía en la unión entre Whisper y el
+detector, no adentro de ninguno de los dos.
+
+**El costo.** Construís algo que sabés que está feo, y después cuesta tirarlo: se queda por
+inercia. Y da poca satisfacción, porque al terminar el día no tenés nada lindo que mostrar,
+sólo la certeza de que el circuito cierra.
