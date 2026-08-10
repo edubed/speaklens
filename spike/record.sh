@@ -19,20 +19,47 @@ if [[ "${1:-}" == "--list" ]]; then
   exit 0
 fi
 
-DURATION="${1:-100}"
-DEVICE="${2:-0}"
+# Two very different kinds of take, and they must not be confused.
+#
+#   (default)      read the spike sentences aloud — tests whether the transcriber
+#                  preserves deliberate mistakes (DEC-011)
+#   --prompt N     answer prompt N out loud, unscripted — the only kind of sample
+#                  the fluency metrics can read (DEC-010)
+#
+# Reading aloud degrades every fluency number exactly the way hesitation does, so
+# a read take would have the metrics diagnose a stammer that is not there.
+if [[ "${1:-}" == "--prompt" ]]; then
+  INDEX="${2:-1}"
+  DURATION="${3:-45}"
+  DEVICE="${4:-0}"
+  OUT="$DIR/audio/answer.wav"
 
-mkdir -p "$DIR/audio"
-
-# Single source of truth for the sentences: they live in analyze.py.
-"$PYTHON" "$DIR/analyze.py" --print-script
+  mkdir -p "$DIR/audio"
+  "$PYTHON" - "$INDEX" <<'PY'
+import sys, yaml, pathlib
+root = pathlib.Path(__file__).resolve().parent
+spec = yaml.safe_load((root.parent / "data" / "prompts.yaml").read_text(encoding="utf-8"))
+prompt = spec["prompts"][int(sys.argv[1]) - 1]
+print(f"\n  ANSWER THIS OUT LOUD. Do not write anything down first.\n")
+print(f"    {' '.join(prompt['text'].split())}\n")
+print(f"    ({prompt['hint_es']})\n")
+print("  Hesitating is fine — that IS the measurement. If you blank, keep")
+print("  talking anyway: silence and false starts are the data.\n")
+PY
+else
+  DURATION="${1:-100}"
+  DEVICE="${2:-0}"
+  mkdir -p "$DIR/audio"
+  # Single source of truth for the sentences: they live in analyze.py.
+  "$PYTHON" "$DIR/analyze.py" --print-script
+fi
 
 cat <<EOF
   Speak up and stay close to the mic. The previous take averaged -39 dB and
   Whisper dropped short words because of it.
 
   Recording ${DURATION}s from device ${DEVICE}, starting in 3 seconds.
-  Press q when you finish the last sentence.
+  Press q when you are done.
 
 EOF
 
@@ -68,10 +95,14 @@ fi
 
 # Every take gets normalised to a consistent loudness so that transcription
 # results are comparable across sessions and never confounded by mic distance.
-NORM="$DIR/audio/attempt_norm.wav"
+NORM="${OUT%.wav}_norm.wav"
 ffmpeg -hide_banner -loglevel error -i "$OUT" \
   -af loudnorm=I=-16:TP=-1.5:LRA=11 -ar 16000 -ac 1 -y "$NORM"
 
 echo "Normalised to $NORM"
 echo ""
-echo "Now run:  .venv/bin/python spike/analyze.py spike/audio/attempt_norm.wav"
+if [[ "${1:-}" == "--prompt" ]]; then
+  echo "Now run:  .venv/bin/python -m speaklens.cli $OUT"
+else
+  echo "Now run:  .venv/bin/python spike/analyze.py $NORM"
+fi
