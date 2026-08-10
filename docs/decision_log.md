@@ -203,6 +203,22 @@ rankeados y un plan de estudio.
 - **Motivo**: Los `rule_id` son un conjunto cerrado y la explicación de una regla no depende del hablante ni de la frase, así que generarla por request es recomputar siempre lo mismo pagando 48 s. Es exactamente el razonamiento de DEC-009 aplicado a DEC-004: si el contenido no varía por usuario, es data, no inferencia.
 - **Impacto**: Latencia de explicación pasa de ~48 s a ~0. Desaparece la alucinación en runtime, porque cada texto pasó por revisión humana antes de entrar al repo. **El LLM local deja de correr en tiempo de ejecución y pasa a ser herramienta de build.** Para el portfolio esto no debilita la historia sino que la mejora: medir, descubrir que la latencia es inaceptable y mover el cómputo a build-time es mejor ingeniería que llamar a un modelo y aguantar. El modelo sigue corriendo local en 8 GB, sólo que una vez.
 
+### **DEC-022: La fluidez deja de ser plan B y pasa a ser la mitad principal**
+
+- **Fecha**: 2026-08-09
+- **Contexto**: Primera medición sobre **habla espontánea real**, no sobre frases de prueba. 39 segundos respondiendo la consigna 1. Transcripción: *"Okay, I work in the project Plata Juntos. This project is designed for me, is the web This app is a financial app for finance personnel"*. Hay errores visibles — *work **in** the project*, una frase abandonada a la mitad, *for finance personnel*. **LanguageTool detectó cero.**
+- **Decisión**: Se corrige la expectativa sobre el diagnóstico gramatical y se promueve la fluidez de red de seguridad a mitad protagónica del producto.
+- **Motivo**: El 11/15 de las frases curadas era optimista y no representa el habla real. Las frases de prueba tenían errores de manual, aislados y prolijos; el habla real falla distinto — preposiciones con verbos puntuales, estructuras abandonadas, palabras aproximadas — que es justo donde LanguageTool es ciego, y en habla real eso es **la mayoría** de lo que pasa, no una minoría. En la misma muestra la fluidez midió perfecto: 2,2 palabras seguidas antes de frenar y 67% de silencio, con una pausa de 12,3 s. Eso es *"trabarme al hablar"* cuantificado.
+- **Impacto**: El informe se ordena alrededor de la fluidez, con la gramática como complemento honesto sobre lo que sí detecta. El README no puede prometer detección gramatical amplia. **Nota metodológica**: la muestra fue de 26 palabras a −42 dB, así que no se descarta que se haya perdido audio; la conclusión sobre gramática debería confirmarse con una toma más fuerte y más larga antes de darla por firme.
+
+### **DEC-023: Sin muestra suficiente, el informe no estima**
+
+- **Fecha**: 2026-08-09
+- **Contexto**: Dos veces en el mismo día el sistema afirmó algo que no podía sostener: las métricas de fluidez diagnosticaron un tartamudeo sobre una grabación leída, y la heurística que debía impedirlo clasificó habla espontánea como lectura porque el hablante hace pausas silenciosas en vez de decir *"uh"*.
+- **Decisión**: Toda métrica declara su condición de validez y se abstiene cuando no se cumple, en lugar de degradar en silencio. Las heurísticas se fijan contra muestras reales medidas, no contra intuiciones.
+- **Motivo**: El usuario está en B1 y no puede detectar que el informe se equivoca — el mismo razonamiento de DEC-004 aplicado a las métricas y no sólo al LLM. Un número inventado con formato lindo es peor que un "no puedo medir esto".
+- **Impacto**: `Fluency.looks_read_aloud` se abstiene y explica qué muestra hace falta. La estimación de nivel (DEC-005) necesita un mínimo de palabras antes de arrojar un número.
+
 ---
 
 ## **Decisiones Pendientes**

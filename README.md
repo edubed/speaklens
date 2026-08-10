@@ -80,9 +80,18 @@ a correctness requirement, not audio polish.
 learning English — and nothing for Spanish, which is why `mother_tongue='es'` does
 nothing. Out of the box it caught 9 of 15 typical Spanish-speaker mistakes and was blind
 to articles and question word order, the two most characteristic of all.
-[`rules/grammar-l2-es.xml`](rules/grammar-l2-es.xml) is the missing file; coverage is now
-11 of 15, and the remaining blind spots are
-[documented](docs/languagetool-coverage.md) rather than hidden.
+[`rules/grammar-l2-es.xml`](rules/grammar-l2-es.xml) is the missing file, and coverage on
+those sentences is now 11 of 15.
+
+**That 11 of 15 does not survive contact with real speech.** On the first spontaneous
+sample — visibly non-native, with a wrong preposition and an abandoned clause — the
+detector found nothing at all. Curated test sentences carry one clean, well-delimited
+mistake each; real speech produces overlapping errors, half-finished structures and
+approximate word choices, which is exactly where a rule-based checker is blind. So
+fluency, originally the fallback, is the load-bearing half of the diagnostic, and the
+grammar side is reported for what it can actually see.
+[The measurements are written up](docs/languagetool-coverage.md), optimistic round
+included.
 
 **The pause is not where you would look for it.** Whisper returns speech as one
 unpunctuated run, and sentence-anchored rules need sentence starts. Its timeline is

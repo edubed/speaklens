@@ -126,3 +126,41 @@ falso acierto de ortografía lo tapaba.
 *have* donde el inglés usa *be*: "I have hungry", "I have 32 years old", "I have cold",
 "I have reason", "I have sleep". Es **una sola familia de reglas** y sube la cobertura a
 13/15. Queda fuera del alcance acordado para esta sesión, pero es lo primero de la próxima.
+
+---
+
+# El 11/15 no sobrevive al habla real — 2026-08-09
+
+Primera medición sobre habla espontánea: 39 segundos respondiendo la consigna 1.
+
+> *"Okay, I work **in** the project Plata Juntos. This project is designed for me, is the
+> web This app is a financial app for finance personnel"*
+
+Errores visibles: *work **in** the project* (debería ser *on*), la segunda oración
+abandonada a la mitad, *for finance personnel* por *personal finance*.
+
+**LanguageTool detectó cero.**
+
+## Por qué el 11/15 era optimista
+
+Las 15 frases del spike son errores **de manual**: aislados, prolijos, con la estructura
+correcta salvo por un elemento. El habla real falla distinto:
+
+| Frases de prueba | Habla real |
+|---|---|
+| Un error por oración, bien delimitado | Errores encadenados y superpuestos |
+| Estructura completa | Oraciones abandonadas a la mitad |
+| Error gramatical claro | Elección de palabra aproximada |
+| Preposición de una regla conocida | Preposición de un verbo cualquiera |
+
+Los puntos ciegos ya estaban documentados arriba. Lo que cambia es su **peso**: en frases
+curadas eran 4 de 15, en habla real son casi todo.
+
+## Consecuencia
+
+Registrada como DEC-022: la fluidez pasa de red de seguridad a mitad principal del
+producto, y el README no promete detección gramatical amplia.
+
+**Salvedad honesta:** la muestra fue de 26 palabras a −42 dB de media. No se descarta que
+Whisper haya perdido audio. Conviene confirmar con una toma más fuerte y más larga antes
+de dar la conclusión por firme.
