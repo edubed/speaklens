@@ -16,6 +16,7 @@ from pathlib import Path
 from . import detect as detector
 from . import fluency as fluency_meter
 from . import level as level_estimator
+from . import storage
 from . import themes as taxonomy
 from . import transcribe as transcriber
 
@@ -51,8 +52,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"    - {line}")
     print()
 
+    level = level_estimator.estimate(transcript.text)
     print("nivel:")
-    for line in level_estimator.estimate(transcript.text).summary_es():
+    for line in level.summary_es():
         print(f"    - {line}")
     print()
 
@@ -62,6 +64,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if not mistakes:
         print("  no mistakes found")
+        _persist(audio, transcript, f, level, mistakes)
         return 0
 
     print(f"\n{len(mistakes)} mistakes\n")
@@ -71,13 +74,43 @@ def main(argv: list[str] | None = None) -> int:
         print(f"      {m.message}")
         print(f"      ({m.rule_id})")
 
-    print("\nby theme:")
-    for theme_id, count in detector.rank_themes(mistakes):
+    # Agrupado, nunca ordenado por frecuencia: con ~27% de recall un ranking
+    # ordenaría nuestros puntos ciegos, no las debilidades del hablante (DEC-024).
+    print("\npor tema — esto es lo que pudimos detectar con seguridad,")
+    print("no un perfil completo de tu inglés:")
+    grouped: dict[str, list] = {}
+    for m in mistakes:
+        grouped.setdefault(m.theme_id, []).append(m)
+    for theme_id, items in grouped.items():
         theme = tax[theme_id]
-        print(f"  {count:>2}x  {theme.name_es}")
-        print(f"        {theme.why_es[:100]}")
+        print(f"\n  {theme.name_es}")
+        print(f"    {theme.why_es[:110]}")
+        for m in items:
+            print(f"      · {m.text!r} -> {m.suggestion or '?'}")
 
+    _persist(audio, transcript, f, level, mistakes)
     return 0
+
+
+def _persist(audio, transcript, f, level, mistakes) -> None:
+    connection = storage.connect()
+    try:
+        storage.save(
+            connection,
+            source=audio.name,
+            duration=transcript.duration,
+            transcript=transcript.text,
+            fluency=f,
+            level=level,
+            mistakes=mistakes,
+        )
+        history = storage.fluency_trend(connection, "mean_run_length")
+        if len(history) > 1:
+            print("\npalabras seguidas antes de frenar, por sesión:")
+            for date, value in history:
+                print(f"  {date}  {value:.1f}  {'#' * int(value * 3)}")
+    finally:
+        connection.close()
 
 
 if __name__ == "__main__":

@@ -219,6 +219,14 @@ rankeados y un plan de estudio.
 - **Motivo**: El usuario está en B1 y no puede detectar que el informe se equivoca — el mismo razonamiento de DEC-004 aplicado a las métricas y no sólo al LLM. Un número inventado con formato lindo es peor que un "no puedo medir esto".
 - **Impacto**: `Fluency.looks_read_aloud` se abstiene y explica qué muestra hace falta. La estimación de nivel (DEC-005) necesita un mínimo de palabras antes de arrojar un número.
 
+### **DEC-024: El informe lista errores, no los rankea**
+
+- **Fecha**: 2026-08-30
+- **Contexto**: Recall medido del detector sobre habla de aprendiz anotada: **27%**, con 90% de precisión (`tests/recall.py`). Encuentra uno de cada cuatro errores, y los que se le escapan no son al azar sino categorías enteras: preposición según el verbo, sujeto vacío, artículo espurio, calcos de estructura, tiempo verbal sin marca explícita.
+- **Decisión**: El informe muestra los errores encontrados **agrupados por tema y sin ordenar por frecuencia**, y los presenta como "esto es lo que pudimos detectar con seguridad" en lugar de como un perfil del hablante. Se elimina el ranking de temas de la salida.
+- **Motivo**: Con 27% de recall, un ranking por frecuencia **mide la cobertura del detector, no las debilidades del hablante**. Diría "los artículos son tu punto débil" porque los artículos son lo que sabemos ver. Es un ranking de nuestra propia ceguera presentado como diagnóstico del usuario — y el usuario está en B1 y no puede detectar el sesgo, que es el mismo razonamiento de DEC-004 y DEC-023.
+- **Impacto**: **Revisa DEC-006**: el "mapa que evoluciona" ya no puede sostenerse sobre conteos de errores gramaticales. La persistencia sigue teniendo sentido para la fluidez, que sí es confiable y sí es comparable en el tiempo. La precisión del 90% es lo que hace que la lista siga valiendo: pocas marcas, pero casi todas ciertas.
+
 ---
 
 ## **Decisiones Pendientes**

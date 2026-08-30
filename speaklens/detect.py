@@ -63,7 +63,8 @@ def detect(sentences: list[str] | str, drop_noise: bool = True) -> list[Mistake]
 
     `drop_noise` removes hyphenation, casing and typography findings. They are
     not learner mistakes — when speaking, punctuation is the transcriber's
-    invention, not the speaker's — and leaving them in skews the error ranking.
+    invention, not the speaker's — and leaving them in would pad the list with
+    findings the speaker never produced.
     """
     import language_tool_python
 
@@ -114,10 +115,3 @@ def detect(sentences: list[str] | str, drop_noise: bool = True) -> list[Mistake]
         tool.close()
     return mistakes
 
-
-def rank_themes(mistakes: list[Mistake]) -> list[tuple[str, int]]:
-    """Themes by how often they were hit — the seed of the error map (DEC-006)."""
-    counts: dict[str, int] = {}
-    for m in mistakes:
-        counts[m.theme_id] = counts.get(m.theme_id, 0) + 1
-    return sorted(counts.items(), key=lambda kv: -kv[1])

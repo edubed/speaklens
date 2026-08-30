@@ -15,3 +15,6 @@ models/
 
 # macOS
 .DS_Store
+
+# Contains transcripts of the user speaking; never leaves the machine.
+sessions.db
