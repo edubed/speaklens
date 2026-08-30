@@ -164,3 +164,58 @@ producto, y el README no promete detección gramatical amplia.
 **Salvedad honesta:** la muestra fue de 26 palabras a −42 dB de media. No se descarta que
 Whisper haya perdido audio. Conviene confirmar con una toma más fuerte y más larga antes
 de dar la conclusión por firme.
+
+---
+
+# Recall medido sobre habla de aprendiz — 2026-08-30
+
+DEC-022 se levantó sobre una muestra de 26 palabras: suficiente para sospechar,
+insuficiente para concluir. `tests/recall.py` corre el detector sobre
+`tests/fixtures/learner_speech.yaml` — cinco respuestas espontáneas imitando habla real
+de un hispanohablante en B1, con **33 errores anotados a mano**.
+
+```
+recall:    9/33 = 27%
+precision: 90% (1 marca no correspondió a ningún error anotado)
+```
+
+**El detector es preciso y ciego.** Lo que marca, lo marca bien: 9 de 10 marcas son
+errores reales. Pero encuentra **uno de cada cuatro**.
+
+## Advertencia metodológica
+
+La primera versión de esta medición dio 45%. Comparaba subcadenas, y la marca `'a'`
+(de *a → an*) es una sola letra que aparece dentro de casi cualquier fragmento anotado:
+contó como acierto en *"since March"*, *"I finish was"* y *"I have many problems"*.
+Corregido a solapamiento de posiciones, el número real es 27%. La versión de `recall.py`
+en el repo compara posiciones.
+
+## Qué se le escapa
+
+| Muestra | Recall |
+|---|---|
+| `hypothetical` | 3/5 |
+| `past_narrative` | 2/8 |
+| `experience` | 2/6 |
+| `comparison` | 1/9 |
+| `plans` | 1/5 |
+
+Los ciegos se agrupan solos:
+
+- **Tiempo verbal sin marca explícita** — *"the last project I finish"*, *"this year I
+  learn"*, *"I improve my english"*. Gramaticalmente válidas en aislamiento.
+- **Preposición según el verbo** — *"work **in** the project"*, *"think **in** many
+  things"*, *"a company **from** Spain"*.
+- **Sujeto vacío omitido** — *"for me **is** better"*, *"but **is** true"*. El español
+  no lo necesita y el inglés sí.
+- **Artículo espurio** — *"in **the** transport"*, *"with **the** people"*.
+- **Calcos de estructura** — *"for to pass"*, *"I want that my portfolio have"*.
+- **Falsos amigos** — *"actually"* por *currently*.
+
+## Consecuencia para el mapa de errores (DEC-006)
+
+Con 27% de recall, **rankear temas por frecuencia mide la cobertura del detector, no las
+debilidades del hablante.** El informe diría "los artículos son tu punto débil" porque los
+artículos son lo que sabemos ver, no porque sean tu problema.
+
+Eso obliga a decidir cómo se presenta el mapa. Ver decisión pendiente.

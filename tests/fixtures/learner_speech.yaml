@@ -1,0 +1,94 @@
+# Habla espontánea de aprendiz hispanohablante, para medir el recall real del
+# detector (DEC-022).
+#
+# La muestra real que motivó DEC-022 tenía 26 palabras: suficiente para sospechar,
+# insuficiente para concluir. Esto son cinco respuestas a las cinco consignas,
+# escritas imitando cómo habla de verdad alguien en B1: oraciones abandonadas a la
+# mitad, arranques falsos, preposiciones de verbo equivocadas y calcos del español.
+#
+# Cada `expect` es un fragmento con un error que un profesor marcaría. El recall es
+# cuántos de esos toca el detector. No pretende ser un corpus: pretende ser mucho
+# más que 26 palabras y estar anotado.
+#
+# Cada frase va suelta porque es lo que recibe detect() después del corte por pausas.
+
+samples:
+  - prompt: past_narrative
+    sentences:
+      - "okay so the last project I finish was Plata Juntos"
+      - "is a app for couples that they want to share the expenses"
+      - "I work in this project since March"
+      - "the most difficult was the database because I never use before"
+      - "I have many problems with the deploy"
+      - "but finally I could to solve it"
+    expect:
+      - "I finish was"            # pasado simple
+      - "is a app"                # artículo a/an
+      - "that they want"          # pronombre relativo redundante
+      - "I work in this project"  # preposición: on
+      - "since March"             # tiempo verbal: have been working
+      - "I never use before"      # presente perfecto
+      - "I have many problems"    # pasado
+      - "could to solve"          # infinitivo tras modal
+
+  - prompt: hypothetical
+    sentences:
+      - "if a company offer me a job in Madrid I will be very happy"
+      - "but I need to think in many things"
+      - "for example the taxes here are complicated"
+      - "and my girlfriend she work here"
+      - "so we need to decide together"
+      - "I am agree that is a good opportunity"
+    expect:
+      - "company offer me"        # concordancia
+      - "I will be"               # segundo condicional: would
+      - "think in"                # preposición: about
+      - "my girlfriend she work"  # sujeto doble + concordancia
+      - "I am agree"              # calco
+
+  - prompt: experience
+    sentences:
+      - "this year I learn many things about cloud"
+      - "before I dont know nothing about serverless"
+      - "now I can to deploy a application alone"
+      - "also I improve my english a little"
+      - "I am studying english since two years"
+    expect:
+      - "I learn many things"     # presente perfecto
+      - "I dont know nothing"     # doble negación
+      - "can to deploy"           # infinitivo tras modal
+      - "a application"           # artículo a/an
+      - "I improve"               # pasado
+      - "I am studying english since"  # have been studying for
+
+  - prompt: comparison
+    sentences:
+      - "for me is better work in the house"
+      - "because I dont lose time in the transport"
+      - "the office is more noisy and I concentrate less"
+      - "but is true that you speak less with the people"
+      - "in my opinion depends of the person"
+    expect:
+      - "for me is better"        # sujeto vacío it
+      - "better work"             # to work
+      - "in the house"            # at home
+      - "lose time"               # waste time
+      - "in the transport"        # artículo espurio
+      - "more noisy"              # comparativo noisier
+      - "but is true"             # sujeto vacío it
+      - "with the people"         # artículo espurio
+      - "depends of"              # preposición
+
+  - prompt: plans
+    sentences:
+      - "in two years I want to be working in a company from Spain"
+      - "I need to improve my english for to pass the interviews"
+      - "and I want that my portfolio have more projects"
+      - "actually I am preparing some things"
+      - "I think that in one year I will can apply"
+    expect:
+      - "a company from Spain"    # preposición: in
+      - "for to pass"             # calco de para
+      - "I want that my portfolio have"  # I want my portfolio to have
+      - "actually"                # falso amigo: currently
+      - "I will can"              # doble modal
