@@ -1,5 +1,8 @@
 # Plan diario — 1 hora por día
 
+> **Estado al 2026-08-30:** días 0 a 7 completos. Para retomar con cero contexto leé
+> [`handoff.md`](handoff.md) — próximo paso: grabar las 5 consignas.
+
 Reemplaza el fin de semana en bloque de DEC-016, que no se cumplió.
 
 **La regla:** cada sesión tiene un entregable definido *antes* de sentarse, y termina
