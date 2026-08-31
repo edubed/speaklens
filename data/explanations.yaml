@@ -1,0 +1,142 @@
+# Explicaciones en español, una por regla (DEC-021).
+#
+# Precomputadas y congeladas: en ejecución esto es un lookup de diccionario, no una
+# llamada al modelo. `qwen3:4b` tardaba 48 segundos por explicación y siempre decía
+# lo mismo, porque la explicación de una regla no depende de quién habló.
+#
+# Escritas a mano, no generadas. Cubren las 35 reglas que efectivamente disparan
+# sobre habla de aprendiz — nuestras 28 más las de LanguageTool que aparecen en la
+# práctica. Cualquier regla sin entrada cae al `why_es` de su tema, y si tampoco lo
+# hubiera, al mensaje en inglés de LanguageTool.
+#
+# El tono es de segunda persona y explica el POR QUÉ desde el español, que es lo que
+# un mensaje genérico en inglés no puede hacer.
+
+version: 1
+
+rules:
+
+  # --- Concordancia ---
+  HE_VERB_AGR: >-
+    Con he, she o it el verbo lleva -s en presente. Y en negativo esa -s se muda al
+    auxiliar: no es "she don't like" sino "she doesn't like".
+  AGREEMENT_SENT_START: >-
+    El sujeto es plural, así que el verbo también: "my friends ARE coming", no "is".
+  SHE_LIVE: >-
+    Falta la -s de tercera persona: "she works", no "she work".
+  PCT_SINGULAR_NOUN_PLURAL_VERB_AGREEMENT: >-
+    El sujeto es singular y el verbo quedó en plural. "A company offers", no "offer".
+
+  # --- Tiempos verbales ---
+  ES_PAST_ADVERBIAL_PRESENT_VERB: >-
+    En español alcanza con decir "ayer" y dejar el verbo en presente. El inglés marca
+    el pasado en el verbo igual: "yesterday I WENT", aunque "yesterday" ya lo diga.
+  ES_LAST_PERIOD_PRESENT_VERB: >-
+    "Last week" o "the last project" ponen la frase en pasado, y el inglés exige que
+    el verbo también lo esté.
+  ES_THIS_PERIOD_PRESENT_VERB: >-
+    El período todavía está corriendo, así que va presente perfecto: "this year I HAVE
+    LEARNED", no "this year I learn".
+  ES_NEVER_BEFORE_PRESENT: >-
+    Una experiencia hasta hoy va en presente perfecto: "I have never used it before".
+  ES_SINCE_POINT_SIMPLE: >-
+    Algo que empezó antes y sigue pasando va en presente perfecto continuo:
+    "I have been working since March", no "I work since March".
+  ES_SINCE_DURATION: >-
+    "Since" marca desde cuándo, no cuánto tiempo. Con una duración va "for":
+    "for two years". Y el verbo va en perfecto: "I have been studying for two years".
+  AUXILIARY_DO_WITH_INCORRECT_VERB_FORM: >-
+    Después de "didn't" el verbo vuelve a su forma base, porque el pasado ya lo marca
+    el auxiliar: "didn't go", no "didn't went".
+
+  # --- Artículos ---
+  ES_ARTICLE_JOB_AN: >-
+    En español decimos "soy ingeniero" sin artículo. El inglés lo exige: "I am AN
+    engineer".
+  ES_ARTICLE_JOB_A: >-
+    En español decimos "soy programador" sin artículo. El inglés lo exige: "I am A
+    developer".
+  ES_SPURIOUS_THE_ABSTRACT: >-
+    Al revés que antes: hablando en general el inglés QUITA el artículo que el español
+    pone. "Life is difficult", no "the life is difficult".
+  ES_GENERIC_PLURAL_ARTICLE: >-
+    Hablando de un grupo en general el inglés no lleva artículo: "with people". Si te
+    referís a personas concretas sí: "with the people from my team".
+  EN_A_VS_AN: >-
+    "An" va antes de sonido vocálico y "a" antes de consonante. Se decide por cómo
+    suena, no por cómo se escribe: "an hour", "a university".
+
+  # --- Preposiciones ---
+  ES_VERB_PREP_DEPEND: >-
+    "Depender de" es "depend ON" en inglés. La preposición no se traduce: la elige el
+    verbo.
+  ES_VERB_PREP_WORK_ON: >-
+    Se trabaja ON un proyecto, no IN. "I work in a bank" sí es correcto, porque ahí
+    "in" es el lugar físico.
+  ES_VERB_PREP_THINK_ABOUT: >-
+    Se piensa ABOUT algo. "Think in" sólo vale para el idioma en que pensás:
+    "I think in English".
+  ES_VERB_PREP_ARRIVE: >-
+    Se llega AT a un lugar o IN a una ciudad, nunca "arrive to".
+  ES_VERB_PREP_COMPANY_IN: >-
+    "A company from Spain" suena a que la empresa es de origen español. Si querés decir
+    dónde está, va "a company IN Spain".
+  EXPLAIN_TO: >-
+    "Explicame algo" es "explain something TO me". El inglés necesita la preposición
+    que el español no usa.
+  PREPOSITION_VERB: >-
+    Este verbo pide otra preposición. No hay regla general: cada verbo trae la suya y
+    se aprenden de a uno.
+
+  # --- Calcos ---
+  I_AM_VB: >-
+    "Estoy de acuerdo" es simplemente "I agree". El "am" sobra, porque "agree" ya es el
+    verbo.
+  ES_TENER_STATE: >-
+    El español TIENE hambre, frío o razón; el inglés LOS ES. "I am hungry", no
+    "I have hungry".
+  ES_TENER_YEARS: >-
+    La edad en inglés se dice con "to be": "I am 32 years old", no "I have 32 years".
+  HAVE_CD_YEARS_I: >-
+    La edad en inglés se dice con "to be": "I am 32 years old", no "I have 32 years".
+  ES_FOR_TO_INFINITIVE: >-
+    "Para hacer algo" es sólo "to do something". El "for" es un calco directo del
+    español y en inglés no va.
+  ES_WANT_THAT: >-
+    El inglés no usa "that" después de want o need. Va objeto más "to":
+    "I want you to come", no "I want that you come".
+  ES_DOUBLE_NEGATIVE: >-
+    El español exige la doble negación y el inglés la prohíbe. Después de un verbo
+    negativo va "anything", "anybody" o "anywhere".
+  ES_DOUBLE_NEGATIVE_NOAPOS: >-
+    El español exige la doble negación y el inglés la prohíbe. Después de un verbo
+    negativo va "anything", "anybody" o "anywhere".
+  ES_AT_HOME: >-
+    "En casa" es "at home", una expresión fija. "In the house" se entiende como el
+    edificio.
+  ES_PUBLIC_TRANSPORT: >-
+    "En el transporte" es "on public transport", sin el artículo que pone el español.
+  ES_WASTE_TIME: >-
+    "Perder tiempo" es "waste time". "Lose time" existe pero significa atrasarse
+    respecto de un plan.
+
+  # --- Sujeto y orden ---
+  ES_MISSING_DUMMY_IT_FORME: >-
+    El español puede arrancar sin sujeto: "para mí es mejor". El inglés siempre
+    necesita uno, aunque no signifique nada: "for me IT is better".
+  ES_MISSING_DUMMY_IT_CONJ: >-
+    Falta el "it". El inglés no admite una frase sin sujeto: "but IT is true".
+  ES_QUESTION_WORD_ORDER_BE: >-
+    En español la pregunta se marca con la entonación. El inglés mueve el auxiliar
+    delante del sujeto: "where ARE YOU going". Dentro de otra frase vuelve al orden
+    normal: "I know where you are going".
+
+  # --- Modales y comparativos ---
+  TO_AFTER_MODAL_VERBS: >-
+    Después de can, could, will o would el verbo va sin "to": "I can deploy", no
+    "I can to deploy".
+  TWO_CONNECTED_MODAL_VERBS: >-
+    Dos modales seguidos no se pueden. "I will be able to apply", no "I will can apply".
+  ES_MORE_SHORT_ADJECTIVE: >-
+    Los adjetivos cortos comparan con -er, no con "more": "noisier", no "more noisy".
+    Con los largos sí va "more": "more interesting".

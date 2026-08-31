@@ -15,6 +15,7 @@ from pathlib import Path
 
 from . import curriculum as plan
 from . import detect as detector
+from . import explain as explainer
 from . import fluency as fluency_meter
 from . import level as level_estimator
 from . import storage
@@ -68,12 +69,18 @@ def main(argv: list[str] | None = None) -> int:
         _persist(audio, transcript, f, level, mistakes)
         return 0
 
-    print(f"\n{len(mistakes)} mistakes\n")
+    print(f"\n{len(mistakes)} errores\n")
     for m in mistakes:
         arrow = f" -> {m.suggestion}" if m.suggestion else ""
+        texto, origen = explainer.explain(m.rule_id, m.theme_id, m.message)
+        marca = "" if origen == "rule" else f"  [{origen}]"
         print(f"  [{m.theme_name}] {m.text!r}{arrow}")
-        print(f"      {m.message}")
-        print(f"      ({m.rule_id})")
+        print(f"      {texto}{marca}")
+
+    cobertura = explainer.coverage({m.rule_id for m in mistakes})
+    if cobertura < 1.0:
+        print(f"\n  ({cobertura:.0%} de los errores tienen explicación propia en español;"
+              " el resto cae al tema o al mensaje de LanguageTool)")
 
     # Agrupado, nunca ordenado por frecuencia: con ~27% de recall un ranking
     # ordenaría nuestros puntos ciegos, no las debilidades del hablante (DEC-024).

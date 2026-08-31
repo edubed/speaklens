@@ -19,7 +19,7 @@ cadencia, "hora 6" pasa a ser "día 2".
 | ~~4~~ | ~~Estimación de nivel (DEC-005)~~ ✅ **hecho 9/8** | `speaklens/level.py`. Se abstiene bajo 40 palabras de contenido. Checks en `tests/check.py` |
 | ~~5~~ | ~~Persistencia (DEC-006)~~ ✅ **hecho 30/8** | `speaklens/storage.py`. La fluidez es lo que se compara en el tiempo; los errores se listan sin rankear (DEC-024) |
 | ~~6~~ | ~~Currículum (DEC-009)~~ ✅ **hecho 30/8** | `data/curriculum.yaml`, 9 unidades en orden pedagógico fijo. Escrito a mano, no generado |
-| 7 | Explicaciones precomputadas (DEC-021) | YAML con una explicación revisada por `rule_id`; en runtime es un lookup, no una llamada al LLM |
+| ~~7~~ | ~~Explicaciones precomputadas (DEC-021)~~ ✅ **hecho 30/8** | `data/explanations.yaml`, 40 reglas en español. Lookup con 3 niveles de respaldo |
 | 8 | Informe en pantalla | La web local muestra nivel, errores agrupados y plan. Fea pero completa |
 | 9 | `setup.sh` (DEC-015) | Alguien que clona el repo puede correrlo |
 | 10 | README + **video** | Los 2 minutos grabados. No es opcional (DEC-002) |
