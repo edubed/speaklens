@@ -6,10 +6,10 @@ Answer five spoken prompts and get back your recurring mistakes grouped by gramm
 theme, an estimated level, and a study plan — with no audio ever leaving the machine and
 no API key anywhere.
 
-> **Status:** the pipeline works end to end and every run is stored. Transcription,
-> fluency metrics, level estimation, detection and persistence are built; the curriculum,
-> the Spanish explanations and the report UI are not.
-> See [`docs/daily-plan.md`](docs/daily-plan.md).
+> **Status:** the pipeline works end to end, every run is stored, and each run writes a
+> `report.html` you can read. Transcription, fluency metrics, level estimation, detection,
+> the study plan, the Spanish explanations and the report screen are built; `setup.sh` and
+> the demo video are not. See [`docs/daily-plan.md`](docs/daily-plan.md).
 
 ```
 $ python -m speaklens.cli spike/audio/attempt.wav
@@ -62,7 +62,10 @@ does only what it is actually good at.
                              │
                              ▼
                           SQLite  ── mistakes listed, never ranked
-                                  └─ fluency compared across sessions
+                             │    └─ fluency compared across sessions
+                             ▼
+                        report.html   one static file, no server and no
+                                      request — see DEC-025
 ```
 
 The local LLM does not run at request time. Explanations are generated once per rule,
@@ -118,8 +121,13 @@ Needs Homebrew and Python 3.12.
 brew install ffmpeg openjdk ollama
 python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python scripts/install_rules.py     # add the Spanish L1 rules to LanguageTool
-.venv/bin/python -m speaklens.cli path/to/recording.wav
+.venv/bin/python -m speaklens.cli path/to/recording.wav --open
 ```
+
+The run prints the diagnosis to the terminal and writes `report.html` next to it — level,
+fluency, every mistake shown inside the sentence you said it in with an explanation in
+Spanish, and the unit of the study plan to start from. `--open` opens it in the browser.
+The file is gitignored: like the database, it holds a transcript of your own voice.
 
 `scripts/install_rules.py` edits a file that belongs to LanguageTool, so it keeps a
 pristine backup, fences its changes with marker comments, is idempotent, and has

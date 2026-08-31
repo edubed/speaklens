@@ -227,6 +227,14 @@ rankeados y un plan de estudio.
 - **Motivo**: Con 27% de recall, un ranking por frecuencia **mide la cobertura del detector, no las debilidades del hablante**. Diría "los artículos son tu punto débil" porque los artículos son lo que sabemos ver. Es un ranking de nuestra propia ceguera presentado como diagnóstico del usuario — y el usuario está en B1 y no puede detectar el sesgo, que es el mismo razonamiento de DEC-004 y DEC-023.
 - **Impacto**: **Revisa DEC-006**: el "mapa que evoluciona" ya no puede sostenerse sobre conteos de errores gramaticales. La persistencia sigue teniendo sentido para la fluidez, que sí es confiable y sí es comparable en el tiempo. La precisión del 90% es lo que hace que la lista siga valiendo: pocas marcas, pero casi todas ciertas.
 
+### **DEC-025: El informe es un archivo HTML que se escribe, no una página que se sirve**
+
+- **Fecha**: 2026-08-30
+- **Contexto**: DEC-007 preveía FastAPI con una página HTML/JS sin framework. Al llegar al día 8, el CLI ya produce todos los datos y la pantalla es sólo presentación: no hay nada que pedirle a un servidor.
+- **Decisión**: `speaklens/report.py` renderiza un `report.html` autocontenido — sin CDN, sin fuente web, sin proceso— que el mismo comando del CLI escribe al terminar. `--open` lo abre en el navegador. La parte de FastAPI de DEC-007 queda sin usar; el "sin framework de frontend" se mantiene.
+- **Motivo**: Un servidor agrega un proceso que arrancar, un puerto y una dependencia, a cambio de cero funcionalidad visible. Además, en el video (DEC-002) un servidor es una explicación de más: un comando que termina abriendo el informe se cuenta en una frase. Y el requisito real es más fuerte que "sin framework": el archivo no puede pedir **nada** por red, porque el argumento del proyecto es que corre con el wifi apagado (DEC-001) y el informe es el único artefacto que un evaluador mira de verdad.
+- **Impacto**: FastAPI sale del stack y de `requirements.txt` (nunca llegó a entrar). `report.html` queda gitignoreado: contiene la transcripción de la voz del usuario, igual que `sessions.db`. Si algún día hace falta una demo web, el HTML ya está separado del cálculo y servirlo es un `FileResponse`.
+
 ---
 
 ## **Decisiones Pendientes**

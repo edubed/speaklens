@@ -1,10 +1,11 @@
 """The walking skeleton (DEC-012): audio in, mistakes out, one command.
 
-Deliberately ugly and terminal-only. Nothing here is meant to be the final report;
-the point is that the whole path exists and runs end to end before anything on top
-of it gets built.
+The terminal output stays as it was built — deliberately ugly, and the thing that
+proves the path exists end to end. Since day 8 the same run also writes report.html,
+which is the version a person reads (and the one the video shows).
 
     python -m speaklens.cli spike/audio/attempt.wav
+    python -m speaklens.cli spike/audio/attempt.wav --open
 """
 
 from __future__ import annotations
@@ -18,6 +19,7 @@ from . import detect as detector
 from . import explain as explainer
 from . import fluency as fluency_meter
 from . import level as level_estimator
+from . import report as reporter
 from . import storage
 from . import themes as taxonomy
 from . import transcribe as transcriber
@@ -25,11 +27,13 @@ from . import transcribe as transcriber
 
 def main(argv: list[str] | None = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
-    if not args:
+    flags = {a for a in args if a.startswith("-")}
+    recordings = [a for a in args if not a.startswith("-")]
+    if not recordings:
         print(__doc__)
         return 1
 
-    audio = Path(args[0])
+    audio = Path(recordings[0])
     if not audio.exists():
         print(f"no such recording: {audio}")
         return 1
@@ -66,7 +70,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if not mistakes:
         print("  no mistakes found")
-        _persist(audio, transcript, f, level, mistakes)
+        trend = _persist(audio, transcript, f, level, mistakes)
+        _write_report(audio, transcript, f, level, mistakes, trend, flags)
         return 0
 
     print(f"\n{len(mistakes)} errores\n")
@@ -116,11 +121,27 @@ def main(argv: list[str] | None = None) -> int:
             nombres = ", ".join(f"{u.order}. {u.title_es}" for u in others)
             print(f"\n  después, y en este orden: {nombres}")
 
-    _persist(audio, transcript, f, level, mistakes)
+    trend = _persist(audio, transcript, f, level, mistakes)
+    _write_report(audio, transcript, f, level, mistakes, trend, flags)
     return 0
 
 
-def _persist(audio, transcript, f, level, mistakes) -> None:
+def _write_report(audio, transcript, f, level, mistakes, trend, flags) -> None:
+    """The report screen (day 8). The CLI stays the source of truth for the numbers;
+    report.py only lays them out."""
+    path = reporter.write(
+        open_browser="--open" in flags,
+        source=audio.name,
+        transcript=transcript,
+        fluency=f,
+        level=level,
+        mistakes=mistakes,
+        trend=trend,
+    )
+    print(f"\ninforme: {path}")
+
+
+def _persist(audio, transcript, f, level, mistakes) -> list[tuple[str, float]]:
     connection = storage.connect()
     try:
         storage.save(
@@ -137,6 +158,7 @@ def _persist(audio, transcript, f, level, mistakes) -> None:
             print("\npalabras seguidas antes de frenar, por sesión:")
             for date, value in history:
                 print(f"  {date}  {value:.1f}  {'#' * int(value * 3)}")
+        return history
     finally:
         connection.close()
 

@@ -1,8 +1,8 @@
 # SpeakLens — Handoff
 
-**Última actualización:** 2026-08-30 · **Autor:** Edu Bedini (+ Claude)
-**Fase:** Ejecución · **Estado:** ▶ activo, días 0–7 de 10 completos
-**Retomá acá →** §7 paso 1: grabar las 5 consignas con `./spike/record.sh --prompt N` (N=1..5) para desbloquear la estimación de nivel, que hoy se abstiene por muestra corta.
+**Última actualización:** 2026-08-30 (día 8) · **Autor:** Edu Bedini (+ Claude)
+**Fase:** Ejecución · **Estado:** ▶ activo, días 0–8 de 10 completos
+**Retomá acá →** §7 paso 1: grabar las 5 consignas con `./spike/record.sh --prompt N` (N=1..5) para desbloquear la estimación de nivel, que hoy se abstiene por muestra corta. Es lo único que espera a una persona, y ya hay pantalla donde mirar el resultado.
 
 ---
 
@@ -15,8 +15,9 @@ estudiar. El objetivo real **no es aprender inglés sino portfolio** (DEC-001): 
 los tres bloqueantes de la búsqueda laboral en España — GitHub vacío e inglés B1.
 
 El camino corre punta a punta hoy: `python -m speaklens.cli <audio>` normaliza, transcribe,
-mide fluidez, estima nivel, detecta errores, los explica y guarda la sesión. Faltan la
-pantalla del informe, `setup.sh` y el video de 2 minutos, que es el entregable final.
+mide fluidez, estima nivel, detecta errores, los explica, guarda la sesión y escribe
+`report.html` — un archivo estático, sin servidor y sin una sola llamada de red. Faltan
+`setup.sh` y el video de 2 minutos, que es el entregable final.
 
 ---
 
@@ -48,6 +49,7 @@ y no podría detectarlo (DEC-004).
 | 5 | Persistencia en SQLite | `speaklens/storage.py` |
 | 6 | Plan de estudio de 9 unidades | `data/curriculum.yaml`, `speaklens/curriculum.py` |
 | 7 | Explicaciones en español por regla | `data/explanations.yaml`, `speaklens/explain.py` |
+| 8 | Pantalla del informe | `speaklens/report.py` (+ `--open` en `cli.py`) |
 
 **Números actuales, todos reproducibles:**
 
@@ -56,6 +58,7 @@ y no podría detectarlo (DEC-004).
 - 28 reglas propias de errores de hispanohablante (LanguageTool no trae archivo para español)
 - 14/15 en las frases del spike original
 - 40 explicaciones en español cubriendo las 35 reglas que disparan en la práctica
+- El informe pesa ~13 KB, no pide nada por red y se abre con doble clic
 
 ---
 
@@ -72,17 +75,18 @@ Las 24 están en [`decision_log.md`](decision_log.md). Las que más condicionan 
 - **DEC-021** — el LLM **no corre en tiempo de ejecución**; las explicaciones se precomputan. Ollama no hace falta corriendo (y en 8 GB conviene matarlo).
 - **DEC-023** — toda métrica declara su condición de validez y **se abstiene** si no se cumple.
 - **DEC-024** — los errores se **listan agrupados, nunca se rankean**: con recall parcial un ranking ordena la ceguera del detector.
+- **DEC-025** — el informe es un **archivo HTML que se escribe**, no una página que se sirve. Cae la parte de FastAPI de DEC-007: un servidor agregaría un proceso y una explicación de más en el video, y el requisito real es más fuerte que "sin framework" — el archivo no puede pedir nada por red.
 
 ---
 
 ## 5. Estado del código
 
-- **Rama**: `main`, sincronizada con `origin/main`. **25 commits.**
+- **Rama**: `main`, sincronizada con `origin/main`. **26 commits.**
 - **Cambios sin commitear**: **ninguno**. `git status` limpio.
 - **Tests**:
   - `.venv/bin/python tests/check.py` → *all checks passed* (umbrales fijados contra muestras reales)
   - `.venv/bin/python tests/recall.py` → *recall 28/32 = 88%, precision 97%*
-- **`sessions.db`**: existe localmente y está **gitignoreado** (contiene transcripciones de la voz del usuario). Se puede borrar sin consecuencias.
+- **`sessions.db`** y **`report.html`**: existen localmente y están **gitignoreados** (los dos contienen transcripciones de la voz del usuario). Se pueden borrar sin consecuencias: el informe se reescribe en cada corrida.
 - **Audio**: `spike/audio/` también gitignoreado. Hay dos grabaciones locales: `attempt.wav` (las 15 frases leídas) y `answer.wav` (39 s de habla espontánea).
 
 **Dependencia frágil que hay que conocer:** `scripts/install_rules.py` inyecta las reglas
@@ -98,8 +102,9 @@ cae de 88% a 27% sin avisar. Verificar con `.venv/bin/python scripts/install_rul
 Nada bloqueado técnicamente. Lo único que espera **a una persona**:
 
 - **Grabar las 5 consignas.** La estimación de nivel se abstiene con menos de 40 palabras de
-  contenido, y la única grabación espontánea que existe dio 12. Sin eso el informe queda con
-  un hueco visible y el video no se puede grabar bien.
+  contenido, y la única grabación espontánea que existe dio 12. El informe ya muestra ese
+  hueco de forma prolija —una tarjeta ámbar que dice qué muestra falta, DEC-023— pero en el
+  video hay que poder mostrar también el caso en que sí estima.
 
 ---
 
@@ -117,14 +122,11 @@ cd ~/dev/personal/speaklens
    Hablar, **no leer** — leer degrada las métricas de fluidez igual que trabarse, y el
    detector de lectura lo va a rechazar. Trabarse está bien: es la medición.
 
-2. **Día 8 — pantalla del informe.** Una página HTML local que muestre nivel, fluidez,
-   errores agrupados con su explicación en español y la unidad por dónde empezar. Sin
-   framework (DEC-007). El CLI ya produce todos los datos; es presentación, no lógica.
-
-3. **Día 9 — `setup.sh`** (DEC-015): instalar dependencias, bajar `medium.en`, correr
+2. **Día 9 — `setup.sh`** (DEC-015): instalar dependencias, bajar `medium.en`, correr
    `install_rules.py`. Un repo de portfolio que nadie puede correr vale la mitad.
 
-4. **Día 10 — README final + grabar el video de 2 minutos.**
+3. **Día 10 — README final + grabar el video de 2 minutos.** Para el README hace falta una
+   captura del informe: usar una grabación de prueba, no una con datos propios de más.
 
 > **Puerta de verificación:** el video existe y dura ~2 minutos. Todo lo demás es medio.
 > **Restricción de método:** lo que no aparece en el video, no se construye (DEC-002).
@@ -140,6 +142,7 @@ cd ~/dev/personal/speaklens
 | 4 puntos ciegos del detector | Documentados como **fuera de alcance** en `languagetool-coverage.md`. Dos exigen saber que la oración anterior estaba en pasado: es el techo de un sistema de reglas |
 | Cronograma | DEC-020: una hora por día, sin fecha de entrega. **Tres días sin avance = señal de replanificar.** Entre el 9 y el 30 de agosto pasaron 21 |
 | Nombre `speaklens` | Provisional desde el día 1; nadie lo confirmó |
+| Sin captura del informe en el README | El `report.html` real contiene la voz del usuario y está gitignoreado. La captura del día 10 hay que sacarla de una muestra pensada para mostrarse |
 | Loop conversacional con TTS | Fuera de v1 desde el principio. `say` de macOS costaría 0 GB de RAM si alguna vez se retoma |
 | Evaluación de pronunciación | Descartada (DEC-003). Las confusiones acústicas recurrentes quedaron anotadas como candidato de v2 (DEC-019) |
 

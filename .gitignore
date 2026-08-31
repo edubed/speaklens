@@ -16,5 +16,6 @@ models/
 # macOS
 .DS_Store
 
-# Contains transcripts of the user speaking; never leaves the machine.
+# Both contain transcripts of the user speaking; never leave the machine.
 sessions.db
+report.html
