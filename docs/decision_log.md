@@ -152,6 +152,7 @@ rankeados y un plan de estudio.
 - **Decisión**: Un `setup.sh` que instale dependencias, baje el modelo de Whisper y haga `ollama pull`, más el video para quien no quiera instalar nada.
 - **Motivo**: ~1h de trabajo con retorno alto en credibilidad. Un evaluador escéptico asume que un demo no reproducible está maquillado.
 - **Impacto**: Entra en el domingo, después del esqueleto caminante.
+- **Revisión (2026-08-30)**: hecho como `setup.sh` en el día 9, con dos cambios. **No instala Ollama**: DEC-021 sacó al LLM del tiempo de ejecución, así que un `ollama pull` en el setup descargaría 2,5 GB que nadie usa para correr la app. Y termina **verificando**, no informando: pide al detector que encuentre un error que sólo nuestras reglas ven, porque "instalado" y "funcionando" se separan solos en cuanto alguien actualiza LanguageTool. `--check` corre esa verificación sola.
 
 ### **DEC-016: Cronograma — prep 3–7/8, construcción 8–9/8, video el domingo 9**
 

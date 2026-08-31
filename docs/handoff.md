@@ -1,7 +1,7 @@
 # SpeakLens — Handoff
 
 **Última actualización:** 2026-08-30 (día 8) · **Autor:** Edu Bedini (+ Claude)
-**Fase:** Ejecución · **Estado:** ▶ activo, días 0–8 de 10 completos
+**Fase:** Ejecución · **Estado:** ▶ activo, días 0–9 de 10 completos
 **Retomá acá →** §7 paso 1: grabar las 5 consignas con `./spike/record.sh --prompt N` (N=1..5) para desbloquear la estimación de nivel, que hoy se abstiene por muestra corta. Es lo único que espera a una persona, y ya hay pantalla donde mirar el resultado.
 
 ---
@@ -16,8 +16,9 @@ los tres bloqueantes de la búsqueda laboral en España — GitHub vacío e ingl
 
 El camino corre punta a punta hoy: `python -m speaklens.cli <audio>` normaliza, transcribe,
 mide fluidez, estima nivel, detecta errores, los explica, guarda la sesión y escribe
-`report.html` — un archivo estático, sin servidor y sin una sola llamada de red. Faltan
-`setup.sh` y el video de 2 minutos, que es el entregable final.
+`report.html` — un archivo estático, sin servidor y sin una sola llamada de red. Cualquiera
+que clone el repo lo pone a andar con `./setup.sh`. Falta sólo el día 10: el video de 2
+minutos, que es el entregable final.
 
 ---
 
@@ -50,6 +51,7 @@ y no podría detectarlo (DEC-004).
 | 6 | Plan de estudio de 9 unidades | `data/curriculum.yaml`, `speaklens/curriculum.py` |
 | 7 | Explicaciones en español por regla | `data/explanations.yaml`, `speaklens/explain.py` |
 | 8 | Pantalla del informe | `speaklens/report.py` (+ `--open` en `cli.py`) |
+| 9 | Instalación reproducible | `setup.sh` |
 
 **Números actuales, todos reproducibles:**
 
@@ -59,6 +61,8 @@ y no podría detectarlo (DEC-004).
 - 14/15 en las frases del spike original
 - 40 explicaciones en español cubriendo las 35 reglas que disparan en la práctica
 - El informe pesa ~13 KB, no pide nada por red y se abre con doble clic
+- `./setup.sh` corre limpio y es idempotente: sobre una instalación ya hecha no
+  reinstala nada y termina verificando
 
 ---
 
@@ -75,13 +79,14 @@ Las 24 están en [`decision_log.md`](decision_log.md). Las que más condicionan 
 - **DEC-021** — el LLM **no corre en tiempo de ejecución**; las explicaciones se precomputan. Ollama no hace falta corriendo (y en 8 GB conviene matarlo).
 - **DEC-023** — toda métrica declara su condición de validez y **se abstiene** si no se cumple.
 - **DEC-024** — los errores se **listan agrupados, nunca se rankean**: con recall parcial un ranking ordena la ceguera del detector.
+- **DEC-015** — el repo tiene que poder correrlo un tercero: `setup.sh`. En la revisión del día 9 quedó que **no instala Ollama** (DEC-021 lo sacó del tiempo de ejecución) y que termina **verificando**, no informando.
 - **DEC-025** — el informe es un **archivo HTML que se escribe**, no una página que se sirve. Cae la parte de FastAPI de DEC-007: un servidor agregaría un proceso y una explicación de más en el video, y el requisito real es más fuerte que "sin framework" — el archivo no puede pedir nada por red.
 
 ---
 
 ## 5. Estado del código
 
-- **Rama**: `main`, sincronizada con `origin/main`. **26 commits.**
+- **Rama**: `main`, sincronizada con `origin/main`. **27 commits.**
 - **Cambios sin commitear**: **ninguno**. `git status` limpio.
 - **Tests**:
   - `.venv/bin/python tests/check.py` → *all checks passed* (umbrales fijados contra muestras reales)
@@ -93,7 +98,9 @@ Las 24 están en [`decision_log.md`](decision_log.md). Las que más condicionan 
 propias dentro del `grammar.xml` **de LanguageTool**, que vive en
 `~/.cache/language_tool_python/LanguageTool-6.8/`. Es idempotente, hace backup y tiene
 `--remove`, pero **si se reinstala LanguageTool hay que volver a correrlo** o el detector
-cae de 88% a 27% sin avisar. Verificar con `.venv/bin/python scripts/install_rules.py --check`.
+cae de 88% a 27% sin avisar. Desde el día 9 eso se detecta con **`./setup.sh --check`**,
+que no pregunta si las reglas están escritas sino si el detector encuentra un error que
+sólo ellas ven; `./setup.sh` lo arregla.
 
 ---
 
@@ -122,13 +129,12 @@ cd ~/dev/personal/speaklens
    Hablar, **no leer** — leer degrada las métricas de fluidez igual que trabarse, y el
    detector de lectura lo va a rechazar. Trabarse está bien: es la medición.
 
-2. **Día 9 — `setup.sh`** (DEC-015): instalar dependencias, bajar `medium.en`, correr
-   `install_rules.py`. Un repo de portfolio que nadie puede correr vale la mitad.
-
-3. **Día 10 — README final + grabar el video de 2 minutos.** Para el README hace falta una
+2. **Día 10 — README final + grabar el video de 2 minutos.** Para el README hace falta una
    captura del informe: usar una grabación de prueba, no una con datos propios de más.
 
 > **Puerta de verificación:** el video existe y dura ~2 minutos. Todo lo demás es medio.
+> El repo, además, se hace público ese mismo día (DEC-014): es el bloqueante que este
+> proyecto existe para resolver.
 > **Restricción de método:** lo que no aparece en el video, no se construye (DEC-002).
 > Antes de cualquier commit: `tests/check.py` y `tests/recall.py` en verde.
 

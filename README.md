@@ -115,12 +115,19 @@ the wrong conclusion and why it was discarded.
 
 ## Running it
 
-Needs Homebrew and Python 3.12.
+Needs Homebrew and Python 3.12. One command, about 1.9 GB of downloads the first time:
 
 ```bash
-brew install ffmpeg openjdk ollama
-python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python scripts/install_rules.py     # add the Spanish L1 rules to LanguageTool
+./setup.sh
+```
+
+It installs ffmpeg and a JDK, creates the virtualenv, pulls Whisper `medium.en` and
+LanguageTool, injects the Spanish L1 rules into it, and then proves the detector is armed
+by asking it to catch a mistake only those rules can catch. It does not install Ollama:
+the explanations were generated once and frozen into the repo, so nothing needs a model
+server at run time.
+
+```bash
 .venv/bin/python -m speaklens.cli path/to/recording.wav --open
 ```
 
@@ -131,7 +138,9 @@ The file is gitignored: like the database, it holds a transcript of your own voi
 
 `scripts/install_rules.py` edits a file that belongs to LanguageTool, so it keeps a
 pristine backup, fences its changes with marker comments, is idempotent, and has
-`--remove`. Re-run it after reinstalling LanguageTool.
+`--remove`. Upgrading LanguageTool restores its own rule files and takes ours with it,
+which drops recall from 88% to 27% with no error and no clue — `./setup.sh --check`
+detects exactly that, and re-running `./setup.sh` fixes it.
 
 Recording a sample of your own:
 

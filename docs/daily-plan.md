@@ -1,7 +1,7 @@
 # Plan diario — 1 hora por día
 
-> **Estado al 2026-08-30:** días 0 a 8 completos. Para retomar con cero contexto leé
-> [`handoff.md`](handoff.md) — próximo paso: grabar las 5 consignas, y después `setup.sh`.
+> **Estado al 2026-08-30:** días 0 a 9 completos. Para retomar con cero contexto leé
+> [`handoff.md`](handoff.md) — queda el día 10: grabar las 5 consignas y el video.
 
 Reemplaza el fin de semana en bloque de DEC-016, que no se cumplió.
 
@@ -24,7 +24,7 @@ cadencia, "hora 6" pasa a ser "día 2".
 | ~~6~~ | ~~Currículum (DEC-009)~~ ✅ **hecho 30/8** | `data/curriculum.yaml`, 9 unidades en orden pedagógico fijo. Escrito a mano, no generado |
 | ~~7~~ | ~~Explicaciones precomputadas (DEC-021)~~ ✅ **hecho 30/8** | `data/explanations.yaml`, 40 reglas en español. Lookup con 3 niveles de respaldo |
 | ~~8~~ | ~~Informe en pantalla~~ ✅ **hecho 30/8** | `speaklens/report.py` escribe `report.html`: nivel, fluidez, errores agrupados en su frase y plan. Archivo estático, sin servidor (DEC-025) |
-| 9 | `setup.sh` (DEC-015) | Alguien que clona el repo puede correrlo |
+| ~~9~~ | ~~`setup.sh` (DEC-015)~~ ✅ **hecho 30/8** | `./setup.sh` deja el repo corriendo y termina probando que el detector encuentra lo que sólo nuestras reglas ven. `--check` corre esa prueba sola |
 | 10 | README + **video** | Los 2 minutos grabados. No es opcional (DEC-002) |
 
 Unas dos semanas de días hábiles. Al terminar cada sesión, anotá en una línea qué quedó y
