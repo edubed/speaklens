@@ -6,29 +6,30 @@ Answer five spoken prompts and get back your recurring mistakes grouped by gramm
 theme, an estimated level, and a study plan — with no audio ever leaving the machine and
 no API key anywhere.
 
-> **Status:** the end-to-end path works. `python -m speaklens.cli <audio>` records nothing
-> yet, but takes a recording and prints classified mistakes. Level estimation, fluency
-> metrics and the report UI are not built. See [`docs/daily-plan.md`](docs/daily-plan.md).
+> **Status:** the pipeline works end to end and every run is stored. Transcription,
+> fluency metrics, level estimation, detection and persistence are built; the curriculum,
+> the Spanish explanations and the report UI are not.
+> See [`docs/daily-plan.md`](docs/daily-plan.md).
 
 ```
 $ python -m speaklens.cli spike/audio/attempt.wav
 transcribing attempt.wav with medium.en ...
   62s of audio in 18s, 71 words
 
-11 mistakes
+fluidez:
+    143  palabras por minuto
+    2.2  palabras seguidas antes de frenar
+    67%  del tiempo en silencio
 
-  [Artículos] 'am engineer' -> am an engineer
-      Spanish drops the article before a profession, but English requires one.
-      (ES_ARTICLE_JOB_AN)
-  [Orden de las palabras] 'where you are' -> where are you
-      English questions need the auxiliary before the subject.
-      (ES_QUESTION_WORD_ORDER_BE)
-  ...
+por tema — esto es lo que pudimos detectar con seguridad,
+no un perfil completo de tu inglés:
 
-by theme:
-   4x  Concordancia sujeto-verbo
-   2x  Preposiciones
-   2x  Artículos
+  Artículos
+      · 'am engineer' -> am an engineer
+  Orden de las palabras
+      · 'where you are' -> where are you
+  Tiempos verbales
+      · 'go' -> went
 ```
 
 ## The idea
@@ -47,20 +48,21 @@ does only what it is actually good at.
       ▼
   Whisper medium.en           transcript + per-word timings
       │
-      ├─────────────▶  fluency metrics       pauses, fillers, WPM      (planned)
+      ├─────────────▶  fluency metrics       pauses, fillers, WPM
       │
       ├─────────────▶  LanguageTool          rule-based detection
       │                + Spanish L1 rules    no hallucination, ever
       │                       │
       │                       ▼
       │                  theme taxonomy      11 themes, one list feeding
-      │                                      explanations, curriculum and ranking
+      │                                      explanations and curriculum
       │
-      └─────────────▶  lexical features      CEFR estimate             (planned)
+      └─────────────▶  lexical features      CEFR estimate, or an honest
+                             │                refusal below 40 content words
                              │
                              ▼
-                          SQLite  ── n=1 → diagnostic
-                                  └─ n=N → error map over time
+                          SQLite  ── mistakes listed, never ranked
+                                  └─ fluency compared across sessions
 ```
 
 The local LLM does not run at request time. Explanations are generated once per rule,
@@ -81,17 +83,18 @@ learning English — and nothing for Spanish, which is why `mother_tongue='es'` 
 nothing. Out of the box it caught 9 of 15 typical Spanish-speaker mistakes and was blind
 to articles and question word order, the two most characteristic of all.
 [`rules/grammar-l2-es.xml`](rules/grammar-l2-es.xml) is the missing file, and coverage on
-those sentences is now 11 of 15.
+those sentences is now 14 of 15.
 
-**That 11 of 15 does not survive contact with real speech.** On the first spontaneous
-sample — visibly non-native, with a wrong preposition and an abandoned clause — the
-detector found nothing at all. Curated test sentences carry one clean, well-delimited
-mistake each; real speech produces overlapping errors, half-finished structures and
-approximate word choices, which is exactly where a rule-based checker is blind. So
-fluency, originally the fallback, is the load-bearing half of the diagnostic, and the
-grammar side is reported for what it can actually see.
-[The measurements are written up](docs/languagetool-coverage.md), optimistic round
-included.
+**Curated sentences flattered it, so recall got measured properly.** Against 32 mistakes
+annotated by hand in realistic spontaneous learner speech, the detector started at 27%
+recall — real speech produces overlapping errors and half-finished clauses, not the one
+clean mistake per sentence a test set contains. Twenty-four more rules took it to **88%
+recall at 97% precision**, with zero false positives on correct English. The tense rules
+inflect their own suggestions, so "Yesterday I go" is answered with "went".
+
+Four blind spots remain and are [documented as out of reach](docs/languagetool-coverage.md)
+rather than left pending: two of them need to know that the previous sentence was in the
+past, which is the ceiling of any rule-based system.
 
 **The pause is not where you would look for it.** Whisper returns speech as one
 unpunctuated run, and sentence-anchored rules need sentence starts. Its timeline is
