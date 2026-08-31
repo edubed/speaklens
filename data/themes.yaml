@@ -5,8 +5,9 @@
 #   1. Las explicaciones en español (DEC-021) se escriben una por TEMA, no una por
 #      regla. LanguageTool tiene cientos de reglas; temas hay quince.
 #   2. Las unidades del currículum (DEC-009) son estos mismos temas.
-#   3. El mapa de errores (DEC-006) se rankea por tema, porque "los artículos son tu
-#      punto débil" es accionable y "disparaste EN_A_VS_AN cuatro veces" no lo es.
+#   3. El informe agrupa los errores por tema, porque "artículos" es accionable y
+#      "disparaste EN_A_VS_AN" no lo es. Agrupa, NO rankea: con recall parcial un
+#      orden por frecuencia describiría la cobertura del detector (DEC-024).
 #
 # La explicación de POR QUÉ está mal vive acá, en el tema, escrita y revisada a mano.
 # La corrección concreta de CADA frase la produce LanguageTool sola. Así hay
@@ -16,7 +17,7 @@
 # nuevas al usarlo. Se mapea lo que va apareciendo y el resto cae en `otros`, que
 # funciona como bandeja de entrada: lo que se acumule ahí se clasifica después.
 #
-# `noise: true` marca lo que NO es error de aprendiz y no debe ensuciar el mapa.
+# `noise: true` marca lo que NO es error de aprendiz y no debe ensuciar la lista.
 # El caso 7 del spike lo mostró: LanguageTool marcó que "thirty-two" va con guion,
 # no el calco "I have X years old". Detectó algo, pero no lo que importaba.
 
@@ -33,7 +34,8 @@ themes:
       "la vida es difícil" con artículo, pero el inglés dice "life is difficult"
       sin él, porque habla de la vida en general.
     rules: [EN_A_VS_AN, DT_DT, MISSING_DETERMINER,
-            ES_ARTICLE_JOB_A, ES_ARTICLE_JOB_AN, ES_SPURIOUS_THE_ABSTRACT]
+            ES_ARTICLE_JOB_A, ES_ARTICLE_JOB_AN, ES_SPURIOUS_THE_ABSTRACT,
+            ES_GENERIC_PLURAL_ARTICLE]
     categories: []
 
   - id: orden_palabras
@@ -55,7 +57,8 @@ themes:
       El inglés marca el pasado en el verbo aunque la frase ya tenga una palabra
       que indique tiempo. "Yesterday I go" no alcanza: hay que decir "yesterday I
       went", aunque "yesterday" ya diga que fue ayer.
-    rules: [AUXILIARY_DO_WITH_INCORRECT_VERB_FORM, VERB_FORM, TENSE_AGREEMENT]
+    rules: [AUXILIARY_DO_WITH_INCORRECT_VERB_FORM, VERB_FORM, TENSE_AGREEMENT,
+            ES_PAST_ADVERBIAL_PRESENT_VERB, ES_LAST_PERIOD_PRESENT_VERB, ES_THIS_PERIOD_PRESENT_VERB, ES_NEVER_BEFORE_PRESENT, ES_SINCE_POINT_SIMPLE, ES_SINCE_DURATION]
     categories: []
 
   - id: concordancia
@@ -77,7 +80,8 @@ themes:
       Cada verbo inglés pide su preposición y casi nunca coincide con la del
       español. "Depender DE" es "depend ON", "llegar A" es "arrive AT". No hay
       regla general: se aprenden de a uno.
-    rules: [EXPLAIN_TO, DEPEND_ON, PREPOSITION_VERB]
+    rules: [EXPLAIN_TO, DEPEND_ON, PREPOSITION_VERB,
+            ES_VERB_PREP_WORK_ON, ES_VERB_PREP_THINK_ABOUT, ES_VERB_PREP_ARRIVE, ES_VERB_PREP_DEPEND, ES_VERB_PREP_COMPANY_IN]
     categories: []
 
   - id: calcos
@@ -88,7 +92,8 @@ themes:
       Frases traducidas literalmente que en inglés no existen. "Tengo hambre" no
       es "I have hungry" sino "I am hungry"; "estoy de acuerdo" no es "I am agree"
       sino "I agree"; "tengo 32 años" no es "I have 32 years" sino "I am 32".
-    rules: [I_AM_VB, HAVE_CD_YEARS_I, HAVE_CD_YEARS]
+    rules: [I_AM_VB, HAVE_CD_YEARS_I, HAVE_CD_YEARS,
+            ES_TENER_STATE, ES_TENER_YEARS, ES_FOR_TO_INFINITIVE, ES_WANT_THAT, ES_AT_HOME, ES_PUBLIC_TRANSPORT, ES_WASTE_TIME, ES_DOUBLE_NEGATIVE, ES_DOUBLE_NEGATIVE_NOAPOS]
     categories: []
 
   - id: comparativos
@@ -98,7 +103,8 @@ themes:
     why_es: >-
       El inglés usa -er/-est en palabras cortas y more/most en las largas, donde el
       español usa siempre "más". "More big" está mal: es "bigger".
-    rules: [COMP_THAN, SUPERLATIVE]
+    rules: [COMP_THAN, SUPERLATIVE,
+            ES_MORE_SHORT_ADJECTIVE]
     categories: []
 
   - id: plurales
@@ -118,7 +124,8 @@ themes:
     why_es: >-
       El español omite el sujeto porque el verbo ya lo dice: "está lloviendo". El
       inglés lo exige siempre: "IT is raining".
-    rules: [PRP_VB, MISSING_SUBJECT]
+    rules: [PRP_VB, MISSING_SUBJECT,
+            ES_MISSING_DUMMY_IT_FORME, ES_MISSING_DUMMY_IT_CONJ]
     categories: []
 
   # --- No son errores de aprendiz: no entran al mapa ---

@@ -18,7 +18,7 @@ cadencia, "hora 6" pasa a ser "día 2".
 | ~~3~~ | ~~Métricas de fluidez (DEC-010)~~ ✅ **hecho 9/8** | `speaklens/fluency.py`. Pendiente: validarlas con una grabación espontánea, no leída |
 | ~~4~~ | ~~Estimación de nivel (DEC-005)~~ ✅ **hecho 9/8** | `speaklens/level.py`. Se abstiene bajo 40 palabras de contenido. Checks en `tests/check.py` |
 | ~~5~~ | ~~Persistencia (DEC-006)~~ ✅ **hecho 30/8** | `speaklens/storage.py`. La fluidez es lo que se compara en el tiempo; los errores se listan sin rankear (DEC-024) |
-| 6 | Currículum congelado (DEC-009) | YAML versionado, generado una vez por el LLM y revisado a mano |
+| ~~6~~ | ~~Currículum (DEC-009)~~ ✅ **hecho 30/8** | `data/curriculum.yaml`, 9 unidades en orden pedagógico fijo. Escrito a mano, no generado |
 | 7 | Explicaciones precomputadas (DEC-021) | YAML con una explicación revisada por `rule_id`; en runtime es un lookup, no una llamada al LLM |
 | 8 | Informe en pantalla | La web local muestra nivel, errores agrupados y plan. Fea pero completa |
 | 9 | `setup.sh` (DEC-015) | Alguien que clona el repo puede correrlo |

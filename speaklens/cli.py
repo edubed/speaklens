@@ -13,6 +13,7 @@ import sys
 import time
 from pathlib import Path
 
+from . import curriculum as plan
 from . import detect as detector
 from . import fluency as fluency_meter
 from . import level as level_estimator
@@ -86,7 +87,27 @@ def main(argv: list[str] | None = None) -> int:
         print(f"\n  {theme.name_es}")
         print(f"    {theme.why_es[:110]}")
         for m in items:
-            print(f"      · {m.text!r} -> {m.suggestion or '?'}")
+            # Algunas reglas explican sin proponer un reemplazo, porque la corrección
+            # depende del resto de la frase. En ese caso vale más el mensaje que un signo.
+            if m.suggestion:
+                print(f"      · {m.text!r} -> {m.suggestion}")
+            else:
+                print(f"      · {m.text!r}: {m.message}")
+
+    seen = {m.theme_id for m in mistakes}
+    unit = plan.next_unit(seen)
+    if unit is not None:
+        others = [u for u in plan.relevant(seen) if u is not unit]
+        print(f"\npor dónde empezar — unidad {unit.order} de {len(plan.load())}:")
+        print(f"  {unit.title_es}")
+        print(f"    {unit.goal_es}")
+        print(f"    {unit.rule_es}")
+        for wrong, right in unit.pairs[:3]:
+            print(f"      {wrong}  ->  {right}")
+        print(f"    práctica: {unit.drill_es}")
+        if others:
+            nombres = ", ".join(f"{u.order}. {u.title_es}" for u in others)
+            print(f"\n  después, y en este orden: {nombres}")
 
     _persist(audio, transcript, f, level, mistakes)
     return 0

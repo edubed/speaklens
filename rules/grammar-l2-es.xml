@@ -382,15 +382,40 @@ data/themes.yaml instead of from these messages.
             The "tener" family. Spanish HAS hunger, cold, luck and years; English IS
             hungry, cold, lucky and old. One pattern covers the whole set.
         -->
-        <rule id="ES_TENER_STATE" name="I have hungry">
-            <pattern>
-                <token inflected="yes">have</token>
-                <token regexp="yes">hungry|thirsty|cold|hot|sleepy|lucky|right|wrong|afraid|scared</token>
-            </pattern>
-            <message>Spanish HAS these states, English IS them: <suggestion><match no="1" postag="VBP" postag_regexp="yes">be</match> \2</suggestion>.</message>
-            <example correction="am hungry">I <marker>have hungry</marker>.</example>
-            <example>I am hungry.</example>
-        </rule>
+        <rulegroup id="ES_TENER_STATE" name="I have hungry">
+            <!-- Split by subject: <match postag="VBP"> can inflect "be" but cannot know
+                 the person, and it was suggesting "are hungry" for "I have hungry". -->
+            <rule>
+                <pattern>
+                    <token>i</token>
+                    <token>have</token>
+                    <token regexp="yes">hungry|thirsty|cold|hot|sleepy|lucky|right|wrong|afraid|scared</token>
+                </pattern>
+                <message>Spanish HAS these states, English IS them: <suggestion>I am \3</suggestion>.</message>
+                <example correction="I am hungry"><marker>I have hungry</marker>.</example>
+                <example>I am hungry.</example>
+            </rule>
+            <rule>
+                <pattern>
+                    <token regexp="yes">he|she|it</token>
+                    <token regexp="yes">has|have</token>
+                    <token regexp="yes">hungry|thirsty|cold|hot|sleepy|lucky|right|wrong|afraid|scared</token>
+                </pattern>
+                <message>Spanish HAS these states, English IS them: <suggestion>\1 is \3</suggestion>.</message>
+                <example correction="He is hungry"><marker>He has hungry</marker>.</example>
+                <example>He is hungry.</example>
+            </rule>
+            <rule>
+                <pattern>
+                    <token regexp="yes">you|we|they</token>
+                    <token>have</token>
+                    <token regexp="yes">hungry|thirsty|cold|hot|sleepy|lucky|right|wrong|afraid|scared</token>
+                </pattern>
+                <message>Spanish HAS these states, English IS them: <suggestion>\1 are \3</suggestion>.</message>
+                <example correction="They are hungry"><marker>They have hungry</marker>.</example>
+                <example>They are hungry.</example>
+            </rule>
+        </rulegroup>
 
         <rule id="ES_TENER_YEARS" name="I have thirty two years old">
             <!-- Anchored on "years old" rather than on the number: "thirty two" is two

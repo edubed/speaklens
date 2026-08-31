@@ -1,0 +1,171 @@
+# Plan de estudio (DEC-009)
+#
+# El orden es FIJO y pedagógico, no personalizado por frecuencia de error. Con
+# recall parcial, ordenar las unidades según lo que el detector encontró sería
+# ordenar su cobertura y no las debilidades del hablante (DEC-024). Lo que sí se
+# personaliza es el resaltado: el informe marca qué unidades tocan los errores de
+# esta sesión, sin afirmar que sean los más frecuentes.
+#
+# La progresión va de lo que rompe la comprensión a lo que sólo suena extranjero:
+# una concordancia mal hecha se nota en la primera frase, un comparativo irregular
+# no impide que te entiendan.
+#
+# Cada unidad se escribió a mano. DEC-009 preveía generarlas con el LLM y
+# revisarlas; con este volumen, escribirlas directo sale mejor y evita el paso de
+# revisión. El propósito de la decisión —contenido auditado, cero alucinación en
+# ejecución— se cumple igual.
+
+version: 1
+weeks_per_unit: 1
+
+units:
+  - order: 1
+    theme_id: concordancia
+    title_es: La -s de la tercera persona
+    goal_es: >-
+      Que "he have" y "she don't" dejen de salir. Es el error más audible del
+      hispanohablante y el más fácil de corregir, porque es una sola regla.
+    rule_es: >-
+      Con he, she, it (y con cualquier sujeto singular), el verbo en presente lleva
+      -s. En negativo la -s se muda al auxiliar: doesn't, no don't.
+    pairs:
+      - ["He have two brothers", "He has two brothers"]
+      - ["She don't like the project", "She doesn't like the project"]
+      - ["My friends is coming", "My friends are coming"]
+    drill_es: >-
+      Contá qué hace un compañero de trabajo en un día normal, en diez frases, todas
+      empezando por "He" o "She". Grabate y revisá que ninguna se te haya escapado.
+
+  - order: 2
+    theme_id: tiempos_verbales
+    title_es: Marcar el pasado en el verbo
+    goal_es: >-
+      Dejar de apoyarte en el adverbio. En español "ayer voy" se entiende; en inglés
+      "yesterday I go" suena roto.
+    rule_es: >-
+      El inglés marca el pasado en el verbo aunque la frase ya diga cuándo pasó. Y
+      con "didn't" el verbo vuelve a su forma base: didn't go, no didn't went.
+    pairs:
+      - ["Yesterday I go to the meeting", "Yesterday I went to the meeting"]
+      - ["Last week she buy a laptop", "Last week she bought a laptop"]
+      - ["I didn't went to the party", "I didn't go to the party"]
+    drill_es: >-
+      Contá qué hiciste ayer, minuto a minuto, en pasado simple. Después repetilo
+      empezando cada frase con "Yesterday" y fijate si el verbo se te va al presente.
+
+  - order: 3
+    theme_id: articulos
+    title_es: Artículos, en los dos sentidos
+    goal_es: >-
+      Poner el que falta y sacar el que sobra. Son dos errores opuestos y los dos
+      vienen del español.
+    rule_es: >-
+      Antes de una profesión el inglés exige artículo ("I am AN engineer"). Hablando
+      en general, lo quita ("life is difficult", no "the life"). Con plurales
+      genéricos también lo quita ("with people", no "with the people").
+    pairs:
+      - ["I am engineer", "I am an engineer"]
+      - ["The life is difficult", "Life is difficult"]
+      - ["You speak less with the people", "You speak less with people"]
+    drill_es: >-
+      Escribí cinco frases sobre tu profesión y cinco sobre la vida en general.
+      Marcá cada artículo y preguntate por qué está o por qué no está.
+
+  - order: 4
+    theme_id: preposiciones
+    title_es: La preposición la elige el verbo
+    goal_es: >-
+      Aprender que no hay regla: cada verbo trae la suya y casi nunca coincide con
+      la del español.
+    rule_es: >-
+      depend ON (no of), work ON a project (no in), think ABOUT something (no in),
+      arrive AT a place o IN a city (no to), listen TO, wait FOR, look FOR.
+    pairs:
+      - ["It depends of the client", "It depends on the client"]
+      - ["I work in this project", "I work on this project"]
+      - ["I need to think in many things", "I need to think about many things"]
+      - ["She arrived to the airport", "She arrived at the airport"]
+    drill_es: >-
+      Hacete una lista de los diez verbos que más usás en el trabajo y buscá la
+      preposición de cada uno. No se deducen: se memorizan de a uno.
+
+  - order: 5
+    theme_id: calcos
+    title_es: Frases que traducidas no existen
+    goal_es: >-
+      Cortar la traducción literal en las expresiones más frecuentes.
+    rule_es: >-
+      El español TIENE hambre, frío, años y razón; el inglés LOS ES: I am hungry,
+      I am cold, I am 32, I am right. "Estoy de acuerdo" es "I agree", sin am.
+      "Para hacer algo" es "to do", sin for.
+    pairs:
+      - ["I am agree with you", "I agree with you"]
+      - ["I have hungry", "I am hungry"]
+      - ["I have 32 years old", "I am 32 years old"]
+      - ["I study for to pass the exam", "I study to pass the exam"]
+    drill_es: >-
+      Anotá cinco frases que digas seguido en español y traducilas palabra por
+      palabra a propósito. Buscá cada una: la que no aparezca en ningún lado es un
+      calco.
+
+  - order: 6
+    theme_id: orden_palabras
+    title_es: El orden en las preguntas
+    goal_es: >-
+      Invertir el auxiliar. En español alcanza la entonación; en inglés no.
+    rule_es: >-
+      En una pregunta el auxiliar va antes del sujeto: "where ARE YOU going". Pero
+      dentro de otra frase el orden vuelve a ser normal: "I know where you are going".
+    pairs:
+      - ["Where you are going?", "Where are you going?"]
+      - ["What you think about it?", "What do you think about it?"]
+    drill_es: >-
+      Escribí diez preguntas para una entrevista de trabajo. Subrayá el auxiliar de
+      cada una y verificá que esté antes del sujeto.
+
+  - order: 7
+    theme_id: pronombres
+    title_es: El sujeto que el español omite
+    goal_es: >-
+      Poner el "it" y el "there" que en español no hacen falta.
+    rule_es: >-
+      El inglés siempre necesita sujeto, aunque no signifique nada: "IT is raining",
+      "IT is better to work at home", "THERE are three options".
+    pairs:
+      - ["For me is better to work at home", "For me it is better to work at home"]
+      - ["But is true that you talk less", "But it is true that you talk less"]
+      - ["Is raining", "It is raining"]
+    drill_es: >-
+      Buscá en lo que escribiste esta semana toda frase que empiece con un verbo.
+      Casi siempre falta el sujeto.
+
+  - order: 8
+    theme_id: comparativos
+    title_es: Comparar sin "more" de más
+    goal_es: >-
+      Usar -er donde corresponde, en vez de traducir "más" siempre igual.
+    rule_es: >-
+      Los adjetivos cortos toman -er (noisier, bigger, easier); los largos toman
+      more (more interesting, more difficult). Y "than", no "that".
+    pairs:
+      - ["The office is more noisy", "The office is noisier"]
+      - ["This is more easy", "This is easier"]
+    drill_es: >-
+      Compará tu trabajo actual con el anterior en cinco frases. Contá las sílabas
+      de cada adjetivo antes de decidir entre -er y more.
+
+  - order: 9
+    theme_id: plurales
+    title_es: Lo que en inglés no se cuenta
+    goal_es: >-
+      Dejar de pluralizar sustantivos que en inglés no admiten plural.
+    rule_es: >-
+      information, advice, knowledge, feedback, software y research no tienen plural.
+      Para contarlos se usa "a piece of" o un cuantificador: "some advice", "a lot of
+      information".
+    pairs:
+      - ["I need more informations", "I need more information"]
+      - ["He gave me two advices", "He gave me two pieces of advice"]
+    drill_es: >-
+      Escribí un correo pidiendo feedback sobre un trabajo. Revisá que ninguno de
+      esos seis sustantivos te haya quedado en plural.
