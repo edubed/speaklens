@@ -41,7 +41,10 @@ samples:
       - "I am agree that is a good opportunity"
     expect:
       - "company offer me"        # concordancia
-      - "I will be"               # segundo condicional: would
+      # "I will be very happy" NO se anota: con la concordancia corregida es primer
+      # condicional, que es inglés correcto. La consigna invita a un hipotético,
+      # pero elegir el primer condicional no es un error. Anotarlo era culpar al
+      # detector por una exigencia estilística nuestra.
       - "think in"                # preposición: about
       - "my girlfriend she work"  # sujeto doble + concordancia
       - "I am agree"              # calco

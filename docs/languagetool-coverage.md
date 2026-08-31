@@ -219,3 +219,62 @@ debilidades del hablante.** El informe diría "los artículos son tu punto débi
 artículos son lo que sabemos ver, no porque sean tu problema.
 
 Eso obliga a decidir cómo se presenta el mapa. Ver decisión pendiente.
+
+---
+
+# Sesión de reglas — 2026-08-30 · de 27% a 88%
+
+Se agregaron 24 reglas a `rules/grammar-l2-es.xml` (de 4 a 28), en tres lotes, midiendo
+recall y precisión después de cada uno.
+
+| Momento | Recall | Precisión |
+|---|---|---|
+| Sólo reglas de artículos y orden | 27% | 90% |
+| + preposiciones de verbo y calcos estructurales | 55% | 95% |
+| + tiempo verbal, comparativos, calcos de lugar | 79% | 96% |
+| + período en curso, plural genérico, familia *tener* | **88%** | **97%** |
+
+**La precisión subió mientras subía el recall.** No es lo esperable —más reglas suelen
+traer más falsos positivos— y la razón es que cada regla se escribió con antipatrones y
+con ejemplos negativos antes de instalarla. Verificado además contra 12 oraciones de
+inglés correcto: **0 falsos positivos**.
+
+## Qué se agregó
+
+- **Preposiciones regidas por verbo**: `work on`, `think about`, `arrive at/in`,
+  `depend on`, `company in`.
+- **Calcos estructurales**: `for to + infinitivo`, `want that + sujeto`, doble negación
+  (con y sin apóstrofo, porque el tokenizador parte `didn't` en `did` + `n't`).
+- **Sujeto vacío**: *"for me is better"*, *"but is true"* — el `it` que el español no
+  necesita y el inglés exige.
+- **Tiempo verbal sin marca**: adverbial de pasado + verbo en presente, período en curso
+  + presente, `never ... before`, `since` + mes con presente simple. Estas usan `<match
+  postag="VBD">`, así que LanguageTool **conjuga la sugerencia**: propone *went*, no sólo
+  señala *go*.
+- **Comparativos**: `more` + adjetivo corto → `-er`.
+- **Calcos de lugar y tiempo**: `at home`, `on public transport`, `waste time`.
+- **Plural genérico**: *"with the people"* → *"with people"*, con antipatrón para
+  *"the people from my team"*.
+- **Familia *tener***: `have hungry` → `am hungry`, `have X years old` → `am X years old`.
+
+## Lo que sigue ciego, y por qué no se ataca
+
+| Error | Motivo |
+|---|---|
+| *"couples **that they** want"* | Ambiguo sin análisis sintáctico: *"the book that they want"* es correcto |
+| *"I **have** many problems"* (debería ser pasado) | No hay marca temporal en la oración; requiere contexto del discurso |
+| *"also I **improve** my english"* | Igual que el anterior |
+| *"**actually**"* como *currently* | Es palabra inglesa correcta y frecuente; marcarla costaría precisión |
+
+Los dos del medio son el techo real de un sistema basado en reglas: **saber que la
+oración anterior estaba en pasado** exige mirar más allá de la oración. Es exactamente
+donde un modelo ayudaría — pero DEC-021 lo sacó del camino de ejecución por latencia, así
+que queda anotado y no resuelto.
+
+**Limitación conocida**: `ES_TENER_YEARS` detecta *"I have 32 years old"* pero no
+*"I have thirty two years old"*. Whisper transcribe números en dígitos, así que la forma
+en letras no aparece en uso real.
+
+## Efecto sobre las 15 frases del spike original
+
+De 11/15 a **14/15**.

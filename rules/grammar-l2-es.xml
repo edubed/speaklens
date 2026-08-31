@@ -78,6 +78,333 @@ data/themes.yaml instead of from these messages.
             <example>I know where you are going.</example>
         </rule>
 
+
+        <!--
+            Verb-governed prepositions. Each English verb picks its own and it
+            almost never matches the Spanish one, so these are learned one at a
+            time and the rule file grows one at a time too.
+        -->
+        <rule id="ES_VERB_PREP_WORK_ON" name="work in a project">
+            <pattern>
+                <token inflected="yes">work</token>
+                <token>in</token>
+                <token regexp="yes">a|an|the|this|that|my|our|his|her|their</token>
+                <token regexp="yes">project|projects|team|teams|feature|features|task|tasks</token>
+            </pattern>
+            <message>English works ON a project, not in one: <suggestion>\1 on \3 \4</suggestion>.</message>
+            <example correction="work on the project">I <marker>work in the project</marker>.</example>
+            <example>I work in a bank.</example>
+        </rule>
+
+        <rule id="ES_VERB_PREP_THINK_ABOUT" name="think in something">
+            <!-- "to think in English" is correct: it names the language of thought,
+                 not the topic. Same for "think in terms of". -->
+            <antipattern>
+                <token>in</token>
+                <token regexp="yes">english|spanish|french|german|italian|portuguese|terms|circles</token>
+            </antipattern>
+            <pattern>
+                <token inflected="yes">think</token>
+                <token>in</token>
+                <token postag_regexp="yes" postag="DT|PRP\$|CD|JJ.*"/>
+            </pattern>
+            <message>To think ABOUT something, not in it: <suggestion>\1 about \3</suggestion>.</message>
+            <example correction="think about many">I need to <marker>think in many</marker> things.</example>
+            <example>I think in English when I am tired.</example>
+        </rule>
+
+        <rule id="ES_VERB_PREP_ARRIVE" name="arrive to a place">
+            <pattern>
+                <token inflected="yes">arrive</token>
+                <token>to</token>
+                <token regexp="yes">the|a|an|my|his|her|our|their</token>
+            </pattern>
+            <message>You arrive AT a place or IN a city, never "arrive to": <suggestion>\1 at \3</suggestion>, <suggestion>\1 in \3</suggestion>.</message>
+            <example correction="arrived at the|arrived in the"><marker>She arrived to the</marker> airport.</example>
+            <example>She arrived at the airport.</example>
+        </rule>
+
+        <rule id="ES_VERB_PREP_DEPEND" name="depend of">
+            <pattern>
+                <token inflected="yes">depend</token>
+                <token>of</token>
+            </pattern>
+            <message>To depend ON, never of: <suggestion>\1 on</suggestion>.</message>
+            <example correction="depends on">It <marker>depends of</marker> the client.</example>
+            <example>It depends on the client.</example>
+        </rule>
+
+        <rule id="ES_VERB_PREP_COMPANY_IN" name="a company from Spain">
+            <pattern>
+                <token regexp="yes">company|companies|startup|startups|business</token>
+                <token>from</token>
+                <token postag="NNP"/>
+            </pattern>
+            <message>A company based somewhere is a company IN that place; FROM suggests origin, not location: <suggestion>\1 in \3</suggestion>.</message>
+            <example correction="company in Spain">I want to work for a <marker>company from Spain</marker>.</example>
+            <example>I want to work for a company in Spain.</example>
+        </rule>
+
+        <!--
+            Structural calques. Spanish builds these with "para" and "que", and the
+            word-for-word translation is ungrammatical rather than merely unusual.
+        -->
+        <rule id="ES_FOR_TO_INFINITIVE" name="for to do something">
+            <pattern>
+                <token>for</token>
+                <token>to</token>
+                <token postag="VB"/>
+            </pattern>
+            <message>Spanish "para hacer" is just "to do" in English — the "for" is not used: <suggestion>to \3</suggestion>.</message>
+            <example correction="to pass">I need to study <marker>for to pass</marker> the exam.</example>
+            <example>I need a book for the exam.</example>
+        </rule>
+
+        <rule id="ES_WANT_THAT" name="I want that you come">
+            <pattern>
+                <token inflected="yes" regexp="yes">want|need|prefer|expect</token>
+                <token>that</token>
+                <token postag_regexp="yes" postag="PRP|PRP\$|DT|NN.*"/>
+            </pattern>
+            <message>English does not use "that" after want or need. It takes an object plus "to": "I want you to come", not "I want that you come".</message>
+            <example><marker>I want that my</marker> portfolio grows.</example>
+            <example>I want my portfolio to grow.</example>
+        </rule>
+
+        <!--
+            Spanish licenses a subject-less predicate ("es mejor", "es verdad").
+            English needs the dummy "it", and its absence is one of the most
+            audible markers of a Spanish speaker.
+        -->
+        <rule id="ES_MISSING_DUMMY_IT_FORME" name="for me is better">
+            <pattern>
+                <token postag="SENT_START"/>
+                <token>for</token>
+                <token regexp="yes">me|us|him|her|them</token>
+                <token regexp="yes">is|was</token>
+                <token postag_regexp="yes" postag="JJ.*"/>
+            </pattern>
+            <message>English needs the subject "it" that Spanish leaves out: <suggestion>\2 \3 it \4 \5</suggestion>.</message>
+            <example correction="For me it is better"><marker>For me is better</marker> to work at home.</example>
+            <example>For me it is better to work at home.</example>
+        </rule>
+
+        <rule id="ES_MISSING_DUMMY_IT_CONJ" name="but is true">
+            <pattern>
+                <token regexp="yes">but|and|so</token>
+                <token regexp="yes">is|was</token>
+                <token regexp="yes">true|false|possible|difficult|easy|important|necessary|better|worse|clear|obvious</token>
+            </pattern>
+            <message>English needs the subject "it" that Spanish leaves out: <suggestion>\1 it \2 \3</suggestion>.</message>
+            <example correction="but it is true">I like remote work, <marker>but is true</marker> that you talk less.</example>
+            <example>I like remote work, but it is true that you talk less.</example>
+        </rule>
+
+        <!--
+            Spanish requires the second negative; English forbids it.
+        -->
+        <rule id="ES_DOUBLE_NEGATIVE" name="I don't know nothing">
+            <!-- The tokenizer splits "didn't" into "did" + "n't", so the negation is
+                 matched on its own token and the object is reached with skip. -->
+            <pattern>
+                <token regexp="yes" skip="3">n't|not</token>
+                <token regexp="yes">nothing|nobody|noone|nowhere</token>
+            </pattern>
+            <message>Spanish doubles the negative and English does not: after a negative verb use "anything", "anybody" or "anywhere".</message>
+            <example>Before, I didn't know <marker>nothing</marker> about it.</example>
+            <example>Before, I didn't know anything about it.</example>
+        </rule>
+
+        <!--
+            "Desde hace dos años" maps to a perfect with "for", not to a present
+            with "since".
+        -->
+        <rule id="ES_SINCE_DURATION" name="I am studying since two years">
+            <pattern>
+                <token>since</token>
+                <token regexp="yes">one|two|three|four|five|six|seven|eight|nine|ten|a|an|\d+</token>
+                <token regexp="yes">year|years|month|months|week|weeks|day|days|hour|hours</token>
+            </pattern>
+            <message>"Since" marks a starting point, not a length of time. Use "for" with a duration, and a perfect tense: <suggestion>for \2 \3</suggestion>.</message>
+            <example correction="for two years">I have been studying English <marker>since two years</marker>.</example>
+            <example>I have been studying English since 2020.</example>
+        </rule>
+
+        <!--
+            Tense with no marker on the verb. Spanish speakers lean on the time
+            adverbial ("ayer voy") and leave the verb in the present, which is the
+            single most common mistake in the recall fixture. LanguageTool can
+            inflect the suggestion with <match>, so the rule proposes the right
+            past form rather than only pointing at the problem.
+        -->
+        <rule id="ES_PAST_ADVERBIAL_PRESENT_VERB" name="yesterday I go">
+            <pattern>
+                <token regexp="yes">yesterday|ago</token>
+                <token postag_regexp="yes" postag="PRP|NNP?" skip="2"/>
+                <token postag_regexp="yes" postag="VBP?"><exception regexp="yes">be|have|do|will|can|would|could</exception></token>
+            </pattern>
+            <message>The time expression is in the past, so English marks the verb too: <suggestion><match no="3" postag="VBD"/></suggestion>.</message>
+            <example correction="went"><marker>Yesterday I go</marker> to the meeting.</example>
+            <example>Yesterday I went to the meeting.</example>
+        </rule>
+
+        <rule id="ES_LAST_PERIOD_PRESENT_VERB" name="last week she buy">
+            <pattern>
+                <token regexp="yes">last|previous</token>
+                <token regexp="yes">week|month|year|night|time|project|sprint|job</token>
+                <token postag_regexp="yes" postag="PRP|NNP?" skip="2"/>
+                <token postag_regexp="yes" postag="VBP?"><exception regexp="yes">be|have|do|will|can|would|could</exception></token>
+            </pattern>
+            <message>"Last week" puts the sentence in the past, and English marks the verb as well: <suggestion><match no="4" postag="VBD"/></suggestion>.</message>
+            <example correction="bought"><marker>Last week she buy</marker> a new laptop.</example>
+            <example>Last week she bought a new laptop.</example>
+        </rule>
+
+        <rule id="ES_NEVER_BEFORE_PRESENT" name="I never use before">
+            <pattern>
+                <token>never</token>
+                <token postag_regexp="yes" postag="VBP?" skip="3"><exception regexp="yes">be|have|do</exception></token>
+                <token>before</token>
+            </pattern>
+            <message>An experience up to now takes the present perfect: "I have never used it before".</message>
+            <example>I <marker>never use before</marker>.</example>
+            <example>I have never used it before.</example>
+        </rule>
+
+        <rule id="ES_SINCE_POINT_SIMPLE" name="I work since March">
+            <pattern>
+                <token postag_regexp="yes" postag="VBP?" skip="4"><exception regexp="yes">be|have|do|been</exception></token>
+                <token>since</token>
+                <token regexp="yes">january|february|march|april|may|june|july|august|september|october|november|december|\d{4}</token>
+            </pattern>
+            <message>An action that started in the past and still continues takes the present perfect: "I have been working since March", not "I work since March".</message>
+            <example>I <marker>work in this project since March</marker>.</example>
+            <example>I have been working on this project since March.</example>
+        </rule>
+
+        <!--
+            Short adjectives take -er in English where Spanish always uses "más".
+        -->
+        <rule id="ES_MORE_SHORT_ADJECTIVE" name="more noisy">
+            <pattern>
+                <token>more</token>
+                <token regexp="yes">noisy|big|small|easy|hard|fast|slow|happy|cheap|quiet|busy|simple|clean|early|late|nice|clear|strong|weak|young|old|rich|poor|safe|warm|cold|tall|short|long|high|low</token>
+            </pattern>
+            <message>Short adjectives take -er instead of "more": <suggestion><match no="2" postag="JJR"/></suggestion>.</message>
+            <example correction="noisier">The office is <marker>more noisy</marker>.</example>
+            <example>The office is noisier.</example>
+        </rule>
+
+        <!--
+            Place idioms translated word for word.
+        -->
+        <rule id="ES_AT_HOME" name="work in the house">
+            <pattern>
+                <token inflected="yes" regexp="yes">work|stay|be|eat|study</token>
+                <token>in</token>
+                <token>the</token>
+                <token>house</token>
+            </pattern>
+            <message>"En casa" is "at home" in English, not "in the house": <suggestion>\1 at home</suggestion>.</message>
+            <example correction="work at home">It is better to <marker>work in the house</marker>.</example>
+            <example>It is better to work at home.</example>
+        </rule>
+
+        <rule id="ES_PUBLIC_TRANSPORT" name="in the transport">
+            <pattern>
+                <token regexp="yes">in|on</token>
+                <token>the</token>
+                <token>transport</token>
+            </pattern>
+            <message>English says "on public transport", without the definite article Spanish uses: <suggestion>on public transport</suggestion>.</message>
+            <example correction="on public transport">I lose time <marker>in the transport</marker>.</example>
+            <example>I waste time on public transport.</example>
+        </rule>
+
+        <rule id="ES_WASTE_TIME" name="lose time">
+            <pattern>
+                <token inflected="yes">lose</token>
+                <token>time</token>
+            </pattern>
+            <message>"Perder tiempo" is to WASTE time; "lose time" means to fall behind a schedule: <suggestion>waste time</suggestion>.</message>
+            <example correction="waste time">I do not want to <marker>lose time</marker> commuting.</example>
+            <example>I do not want to waste time commuting.</example>
+        </rule>
+
+        <!--
+            Transcripts and quick typing often drop the apostrophe, and the
+            tokenizer then reads "dont" as one token instead of "do" + "n't".
+        -->
+        <rule id="ES_DOUBLE_NEGATIVE_NOAPOS" name="I dont know nothing">
+            <pattern>
+                <token regexp="yes" skip="3">dont|doesnt|didnt|cant|wont|couldnt|wouldnt</token>
+                <token regexp="yes">nothing|nobody|noone|nowhere</token>
+            </pattern>
+            <message>Spanish doubles the negative and English does not: after a negative verb use "anything", "anybody" or "anywhere".</message>
+            <example>Before I dont know <marker>nothing</marker> about it.</example>
+            <example>Before I didn't know anything about it.</example>
+        </rule>
+
+        <rule id="ES_THIS_PERIOD_PRESENT_VERB" name="this year I learn">
+            <!-- A period that includes now takes the present perfect, not the simple
+                 present: the year is not over, so the learning is not either. -->
+            <pattern>
+                <token regexp="yes">this</token>
+                <token regexp="yes">year|month|week|semester</token>
+                <token postag_regexp="yes" postag="PRP|NNP?" skip="2"/>
+                <token postag_regexp="yes" postag="VBP?"><exception regexp="yes">be|have|do|will|can|would|could|am|is|are</exception></token>
+            </pattern>
+            <message>A period that is still running takes the present perfect: "this year I have learned", not "this year I learn".</message>
+            <example>This year <marker>I learn</marker> many things about cloud.</example>
+            <example>This year I have learned many things about cloud.</example>
+        </rule>
+
+        <rule id="ES_GENERIC_PLURAL_ARTICLE" name="talk with the people">
+            <!-- Spanish keeps the article for a whole class ("hablar con la gente");
+                 English drops it. Only fires when nothing narrows the noun down. -->
+            <antipattern>
+                <token>the</token>
+                <token regexp="yes">people|colleagues|clients|users</token>
+                <token regexp="yes">who|that|from|in|of|at|on|i|we|you|he|she|they</token>
+            </antipattern>
+            <pattern>
+                <token regexp="yes">with|to|about|for</token>
+                <token>the</token>
+                <token regexp="yes">people|colleagues|clients|users</token>
+            </pattern>
+            <message>Speaking about a group in general, English drops the article Spanish keeps: <suggestion>\1 \3</suggestion>.</message>
+            <example correction="with people">You speak less <marker>with the people</marker>.</example>
+            <example>You speak less with people.</example>
+            <example>I spoke with the people from my team.</example>
+        </rule>
+
+        <!--
+            The "tener" family. Spanish HAS hunger, cold, luck and years; English IS
+            hungry, cold, lucky and old. One pattern covers the whole set.
+        -->
+        <rule id="ES_TENER_STATE" name="I have hungry">
+            <pattern>
+                <token inflected="yes">have</token>
+                <token regexp="yes">hungry|thirsty|cold|hot|sleepy|lucky|right|wrong|afraid|scared</token>
+            </pattern>
+            <message>Spanish HAS these states, English IS them: <suggestion><match no="1" postag="VBP" postag_regexp="yes">be</match> \2</suggestion>.</message>
+            <example correction="am hungry">I <marker>have hungry</marker>.</example>
+            <example>I am hungry.</example>
+        </rule>
+
+        <rule id="ES_TENER_YEARS" name="I have thirty two years old">
+            <!-- Anchored on "years old" rather than on the number: "thirty two" is two
+                 tokens, and "old" is what separates the calque from a legitimate
+                 "I have three years of experience". -->
+            <pattern>
+                <token inflected="yes" skip="4">have</token>
+                <token>years</token>
+                <token>old</token>
+            </pattern>
+            <message>Spanish HAS years, English IS them: say "I am thirty-two years old", not "I have thirty-two years old".</message>
+            <example>I <marker>have thirty two years old</marker>.</example>
+            <example>I am thirty-two years old.</example>
+        </rule>
     </category>
 
 </rules>
