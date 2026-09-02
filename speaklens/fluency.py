@@ -24,22 +24,18 @@ from .transcribe import Word, leading_silence
 # the next clause. "like" and "so" are ordinary words too, so they are counted but
 # reported separately from the unambiguous ones.
 UNAMBIGUOUS_FILLERS = {"uh", "um", "erm", "eh", "mmm", "hmm", "ah", "er"}
-CRUTCH_WORDS = {"like", "well", "so", "actually", "basically", "you know"}
+CRUTCH_WORDS = {"like", "well", "so", "actually", "basically"}
 
 # Below this, a gap is ordinary articulation rather than hesitation.
 PAUSE_FLOOR = 0.35
 
-# A silence longer than this is someone hunting for a word, not someone turning a
-# page. Reading produces regular short gaps between sentences; nothing in reading
-# produces a four-second stop.
-READING_PAUSE_CEILING = 4.0
-
-# The second reading style, and the one that got through. Prepared prose read at
-# pace has almost no silence in it and long uninterrupted runs — the opposite
-# profile to a slow recital, and indistinguishable from excellent spontaneous
-# speech by the pause test alone.
-PROSE_SILENCE_CEILING = 0.35
-PROSE_RUN_FLOOR = 3.0
+# Thresholds for the reading hint. Both are weak, and the code says so where it
+# uses them: on the six labelled takes, a fluent speaker's spontaneous English sits
+# on the reading side of the pause threshold, and one of them (Joan, 2026-09-02)
+# clears the disfluency threshold by a tenth of a point. They are kept only because
+# the hint no longer decides anything — the speaker is asked instead.
+READING_PAUSE_CEILING = 3.5
+DISFLUENCY_FLOOR = 1.5
 
 
 @dataclass(frozen=True)
@@ -55,64 +51,58 @@ class Fluency:
     crutches: int
     mean_run_length: float
     runs: int
+    repeats: int = 0
+
+    @property
+    def disfluency_rate(self) -> float:
+        """Hesitation markers per hundred words: fillers, crutches and repetitions.
+
+        Speech leaves debris that writing does not — "people people around", "let's
+        say", a clause abandoned and restarted. A text read aloud has none of it,
+        because the sentence was already solved before the mouth opened.
+        """
+        return (self.fillers + self.crutches + self.repeats) / max(self.words, 1) * 100
 
     @property
     def looks_read_aloud(self) -> bool:
-        """Whether this sample is probably someone reading, not speaking freely.
+        """A hint that this take may have been read. It decides nothing on its own.
 
-        These metrics only mean something on spontaneous speech. Read your answers
-        off a screen and every number describes the text instead of the speaker,
-        and the report goes on to diagnose a person who was never measured.
-
-        Three versions, and it is worth keeping why each failed.
+        Three versions of this were a gate, and the third died on contact with two
+        speakers who were not its author.
 
         The first counted fillers, on the theory that someone assembling a sentence
-        says "uh" while someone reading just goes quiet. It misfired immediately:
-        this speaker hesitates silently, which is an ordinary style, and got told
-        his spontaneous speech was reading.
+        says "uh" while a reader goes quiet. It misfired at once: this speaker
+        hesitates silently, an ordinary style, and was told his speech was reading.
 
-        The second asked for a lot of silence and no long stop, which describes a
-        slow recital of disconnected sentences. It missed the case that matters.
-        Someone who writes their answers first and reads them at pace produces the
-        opposite profile — 30% silence, runs of three and a half words — and sailed
-        through as excellent spontaneous speech. That sample is the labelled one
-        now: the speaker said afterwards that he had written the answers.
+        The second asked for lots of silence and no long stop — a slow recital of
+        disconnected sentences. Someone who writes their answers and reads them at
+        pace produces the opposite profile and sailed straight through.
 
-        So there are two reading styles and one shared trait: neither ever stops
-        for four seconds to find a word. That is the test. The prose clause is the
-        second signal, for a fluent read whose longest pause lands above the
-        ceiling anyway.
+        The third kept the trait both readings shared: never stopping four seconds
+        to find a word. Then the app was handed to two colleagues who speak better
+        English than its author, and their spontaneous takes paused for 2.99s and
+        2.17s — inside the reading range, between the two real readings at 2.66s
+        and 3.27s. Sorted by longest pause, read and spoken interleave. There is no
+        threshold, because there is no separation: a fluent speaker does not stop
+        to search, so silence cannot tell the two apart.
 
-        The test is deliberately eager. Flagging real spontaneous speech costs the
-        speaker a re-recording and says why; missing a read take makes the whole
-        report quietly wrong about a person. DEC-023 prefers the loud failure.
+        Adding disfluency markers narrows it but does not save it. On these six
+        takes the readings sit at 1.4 per hundred words and Joan at 1.6 — a
+        difference of less than one word in her whole answer.
+
+        So the app now asks the speaker, and this is reduced to a hint that only
+        ever appears alongside a declaration it disagrees with. That is why the
+        thresholds above are allowed to be weak: a wrong hint costs a sentence in a
+        report, where a wrong gate used to cost someone their entire measurement.
         """
-        if self.words <= 20:
-            return False
-        searched_for_a_word = self.longest_pause >= READING_PAUSE_CEILING
-        reads_like_prose = (
-            self.silence_ratio < PROSE_SILENCE_CEILING
-            and self.mean_run_length > PROSE_RUN_FLOOR
+        return (
+            self.words > 20
+            and self.longest_pause < READING_PAUSE_CEILING
+            and self.disfluency_rate < DISFLUENCY_FLOOR
         )
-        return not searched_for_a_word or reads_like_prose
 
     def summary_es(self) -> list[str]:
         """Plain-language readings. Thresholds are rough B1/B2 speaking norms."""
-        if self.looks_read_aloud:
-            porque = (
-                f"encadenás {self.mean_run_length:.1f} palabras sin frenar y sólo "
-                f"{self.silence_ratio:.0%} del tiempo es silencio, que es el ritmo de "
-                "un texto escrito"
-                if self.silence_ratio < PROSE_SILENCE_CEILING
-                else f"nunca frenás más de {self.longest_pause:.1f}s, y buscar una "
-                     "palabra lleva más que eso"
-            )
-            return [
-                f"Esta grabación parece leída, no hablada: {porque}.",
-                "Las métricas de fluidez no son válidas acá — medirían el texto, no a "
-                "quien habla. Hacen falta respuestas improvisadas: trabarte es el dato.",
-            ]
-
         lines = []
         if self.words_per_minute < 90:
             lines.append(f"Hablás a {self.words_per_minute:.0f} palabras por minuto. "
@@ -145,7 +135,7 @@ def _normalize(text: str) -> str:
 
 def measure(words: list[Word]) -> Fluency:
     if not words:
-        return Fluency(0, 0.0, 0.0, 0, 0.0, 0.0, 0.0, 0, 0, 0.0, 0)
+        return Fluency(0, 0.0, 0.0, 0, 0.0, 0.0, 0.0, 0, 0, 0.0, 0, 0)
 
     total_seconds = words[-1].end - words[0].start
 
@@ -166,6 +156,9 @@ def measure(words: list[Word]) -> Fluency:
     tokens = [_normalize(w.text) for w in words]
     fillers = sum(1 for t in tokens if t in UNAMBIGUOUS_FILLERS)
     crutches = sum(1 for t in tokens if t in CRUTCH_WORDS)
+    # A word said twice in a row is a restart, not vocabulary. Whisper keeps them:
+    # "people people around", "it was it's going to be".
+    repeats = sum(1 for a, b in zip(tokens, tokens[1:]) if a == b and len(a) > 1)
 
     speaking = max(total_seconds - silence_total, 1e-6)
     minutes = max(total_seconds / 60, 1e-6)
@@ -182,4 +175,5 @@ def measure(words: list[Word]) -> Fluency:
         crutches=crutches,
         mean_run_length=sum(runs) / len(runs),
         runs=len(runs),
+        repeats=repeats,
     )

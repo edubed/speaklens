@@ -44,6 +44,7 @@ TRIM_EDGES = (
 class Analysis:
     session_id: int | None
     speaker: str
+    declared: str
     source: str
     transcript: Transcript
     fluency: Fluency
@@ -52,7 +53,7 @@ class Analysis:
     trend: list[tuple[str, float]]
 
 
-def analyze(audio: Path, *, speaker: str = "", persist: bool = True,
+def analyze(audio: Path, *, speaker: str = "", declared: str = "", persist: bool = True,
             on_step: Callable[[str, Any], None] = lambda step, data=None: None) -> Analysis:
     """Run the whole diagnostic over one recording.
 
@@ -87,6 +88,7 @@ def analyze(audio: Path, *, speaker: str = "", persist: bool = True,
                 level=level,
                 mistakes=mistakes,
                 speaker=speaker,
+                declared=declared,
             )
             # Scoped to this speaker: a line that walks across several people
             # answers nobody's question about whether they are improving.
@@ -97,6 +99,7 @@ def analyze(audio: Path, *, speaker: str = "", persist: bool = True,
     return Analysis(
         session_id=session_id,
         speaker=speaker,
+        declared=declared,
         source=audio.name,
         transcript=transcript,
         fluency=fluency,

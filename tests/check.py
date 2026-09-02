@@ -30,36 +30,51 @@ def check(name: str, got: object, want: object) -> None:
     print(f"{'ok  ' if got == want else 'FAIL'} {name}: {got!r}")
 
 
-# Four takes whose kind is known, because the speaker said so afterwards. Every
-# threshold in looks_read_aloud is answerable to these four and nothing else.
+# Six takes whose kind is known, four of them because someone watched them being
+# recorded. Every threshold in looks_read_aloud answers to these six and nothing else.
 #
 # Fields: words, speaking_seconds, wpm, pauses, pauses/min, longest_pause,
-#         silence_ratio, fillers, crutches, mean_run_length, runs
+#         silence_ratio, fillers, crutches, mean_run_length, runs, repeats
 
-# 2026-08-09. Fifteen unrelated sentences read aloud with deliberate pauses. The
-# slow-recital profile: lots of silence, short runs, no long stop.
-READ_SLOWLY = Fluency(71, 0, 158.8, 28, 27.6, 2.66, 0.54, 0, 1, 2.54, 28)
+# 2026-08-09. Fifteen unrelated sentences read aloud with deliberate pauses.
+READ_SLOWLY = Fluency(71, 0, 158.8, 28, 27.6, 2.66, 0.54, 0, 1, 2.54, 28, 0)
 
-# 2026-08-09. Thirty-nine seconds answering prompt 1 unscripted, with one 12.3s
-# stop while searching for a word. No fillers at all — this speaker pauses
-# silently, which is what broke the first version of the test.
-SPONTANEOUS_SHORT = Fluency(26, 0, 142.8, 12, 19.8, 12.28, 0.67, 0, 0, 2.17, 12)
+# 2026-09-01. Answers written out first and then read at pace — the opposite
+# profile to a recital, and the take that killed the second version of the test.
+READ_AS_PROSE = Fluency(141, 0, 116.3, 43, 23.1, 3.27, 0.30, 0, 2, 3.44, 41, 0)
 
-# 2026-09-01. Ninety seconds, unscripted, three prompts answered. Its longest pause
-# is 4.1s against a 4.0 ceiling: this sample, not an argument, is what holds that
-# threshold where it is, and it is the thinnest margin in the file.
-SPONTANEOUS_LONG = Fluency(70, 0, 127.1, 27, 22.9, 4.10, 0.59, 0, 0, 2.19, 32)
+# 2026-08-09. Thirty-nine seconds unscripted, with one 12.3s stop while searching
+# for a word. No fillers: this speaker hesitates silently, which broke version one.
+SPONTANEOUS_SHORT = Fluency(26, 0, 142.8, 12, 19.8, 12.28, 0.67, 0, 0, 2.17, 12, 0)
 
-# 2026-09-01. Answers written out first and then read at pace. This is the take
-# that got through the previous version — 30% silence and runs of 3.4 words is the
-# opposite profile to a slow recital, and it reads as excellent spontaneous speech
-# on every number except the one that matters.
-READ_AS_PROSE = Fluency(141, 0, 116.3, 43, 23.1, 3.27, 0.30, 0, 1, 3.44, 41)
+# 2026-09-01. Ninety seconds unscripted. Only its 4.10s pause keeps it off the
+# reading side — its disfluency rate, 1.43, is lower than both readings above.
+SPONTANEOUS_LONG = Fluency(70, 0, 127.1, 27, 22.9, 4.10, 0.59, 0, 1, 2.19, 32, 0)
 
-check("slow recital is detected as reading", READ_SLOWLY.looks_read_aloud, True)
-check("written answers read at pace are detected", READ_AS_PROSE.looks_read_aloud, True)
-check("short spontaneous take is not called reading", SPONTANEOUS_SHORT.looks_read_aloud, False)
-check("long spontaneous take is not called reading", SPONTANEOUS_LONG.looks_read_aloud, False)
+# 2026-09-02. Two colleagues, both speaking better English than the author, both
+# recorded with him in the room, so their kind is not inferred but witnessed.
+# They are why the test stopped being a gate: neither ever pauses long enough to
+# look like speech, because neither has to search for the word.
+FLUENT_ALE = Fluency(353, 0, 158.3, 73, 22.3, 2.99, 0.31, 0, 12, 4.84, 73, 3)
+FLUENT_JOAN = Fluency(314, 0, 147.4, 81, 25.3, 2.17, 0.33, 0, 5, 3.88, 81, 0)
+
+check("a slow recital hints at reading", READ_SLOWLY.looks_read_aloud, True)
+check("written answers read at pace hint at reading", READ_AS_PROSE.looks_read_aloud, True)
+check("a searching pause rules reading out", SPONTANEOUS_SHORT.looks_read_aloud, False)
+check("so does a 4.1s one", SPONTANEOUS_LONG.looks_read_aloud, False)
+check("a fluent speaker is not called a reader", FLUENT_ALE.looks_read_aloud, False)
+check("nor a fluent speaker with few markers", FLUENT_JOAN.looks_read_aloud, False)
+
+# The two margins holding those six apart, written down because they are thin
+# enough that anyone touching a threshold has to see them first. Sorted by longest
+# pause, read and spoken interleave — 2.17 spoken, 2.66 read, 2.99 spoken, 3.27
+# read — so the pause alone cannot separate them, and each spontaneous take is
+# rescued by a different clause. This is a hint, never a verdict.
+check("Joan clears the disfluency floor by a tenth of a point",
+      round(FLUENT_JOAN.disfluency_rate, 2), 1.59)
+check("both readings sit just under it", 
+      [round(READ_SLOWLY.disfluency_rate, 2), round(READ_AS_PROSE.disfluency_rate, 2)],
+      [1.41, 1.42])
 
 A2_TEXT = """
 I like my job. I work in an office with my friends. Every day I go to work by bus

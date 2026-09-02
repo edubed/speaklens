@@ -117,6 +117,22 @@ li { margin: .35rem 0; }
     </div>
   </section>
 
+  <!-- declaración: la única fuente confiable sobre cómo se grabó -->
+  <section id="declare" hidden>
+    <div class="card">
+      <p class="prompt">Una última cosa, y es la que decide si las métricas valen.</p>
+      <p class="hint">Las de fluidez miden cómo armás la frase mientras hablás. Si la
+      respuesta ya estaba escrita, miden el texto y no a vos — y no hay forma confiable de
+      darse cuenta después: probamos, y con hablantes fluidos el detector automático se
+      equivoca. Así que preguntamos. No hay respuesta mala: leer es una forma legítima de
+      practicar, sólo que no se puede medir igual.</p>
+      <div class="row">
+        <button class="primary" id="improvised">Improvisé todo</button>
+        <button id="read">Leí alguna respuesta</button>
+      </div>
+    </div>
+  </section>
+
   <!-- analysing -->
   <section id="working" hidden>
     <div class="card">
@@ -149,6 +165,7 @@ const el = (id) => document.getElementById(id);
 const show = (id) => { for (const s of document.querySelectorAll("main > section")) s.hidden = true; el(id).hidden = false; };
 
 let stream, recorder, chunks, index = 0, startedAt = 0, ticker, analyser, meterLoop, quietSince = 0;
+let declared = "";
 
 el("warmup-text").textContent = DATA.warm_up;
 
@@ -170,8 +187,10 @@ el("start").addEventListener("click", async () => {
 el("warmup-done").addEventListener("click", () => { show("recording"); renderPrompt(); });
 el("record").addEventListener("click", () => (recorder && recorder.state === "recording") ? stop() : start());
 el("again").addEventListener("click", () => { el("again").hidden = true; el("next").hidden = true; start(); });
-el("next").addEventListener("click", () => { index += 1; index < DATA.prompts.length ? renderPrompt() : analyze(); });
-el("retry").addEventListener("click", analyze);
+el("next").addEventListener("click", () => { index += 1; index < DATA.prompts.length ? renderPrompt() : show("declare"); });
+el("improvised").addEventListener("click", () => analyze("improvised"));
+el("read").addEventListener("click", () => analyze("read"));
+el("retry").addEventListener("click", () => analyze(declared));
 
 function renderPrompt() {
   const prompt = DATA.prompts[index];
@@ -279,7 +298,8 @@ function startMeter() {
   draw();
 }
 
-async function analyze() {
+async function analyze(how) {
+  declared = how || declared;
   show("working");
   const poll = setInterval(async () => {
     try {
@@ -290,7 +310,7 @@ async function analyze() {
 
   try {
     const who = encodeURIComponent(el("speaker").value.trim());
-    const response = await fetch(`/analyze?speaker=${who}`, { method: "POST" });
+    const response = await fetch(`/analyze?speaker=${who}&declared=${declared}`, { method: "POST" });
     const result = await response.json();
     clearInterval(poll);
     if (result.error) throw new Error(result.error);

@@ -1,6 +1,6 @@
 # SpeakLens — Handoff
 
-**Última actualización:** 2026-09-01 · **Autor:** Edu Bedini (+ Claude)
+**Última actualización:** 2026-09-02 · **Autor:** Edu Bedini (+ Claude)
 **Fase:** Ejecución · **Estado:** ▶ activo, días 0–9 de 10 completos + UI guiada (DEC-026)
 **Retomá acá →** §7: queda el **día 10** — README final, video de 2 minutos y hacer el repo público. Todo lo técnico está construido y hay dos preguntas abiertas de medición en §8 que valen más que cualquier feature nueva.
 
@@ -88,7 +88,7 @@ Las 24 están en [`decision_log.md`](decision_log.md). Las que más condicionan 
 
 ## 5. Estado del código
 
-- **Rama**: `main`, sincronizada con `origin/main`. **31 commits.**
+- **Rama**: `main`, sincronizada con `origin/main`. **34 commits.**
 - **Cambios sin commitear**: **ninguno**. `git status` limpio.
 - **Tests**:
   - `.venv/bin/python tests/check.py` → *all checks passed* (umbrales fijados contra muestras reales)
@@ -110,7 +110,8 @@ sólo ellas ven; `./setup.sh` lo arregla.
 
 Nada bloqueado técnicamente. Lo único que espera **a una persona**:
 
-- **Una sesión hablada de las cinco consignas.** La sesión 4 llegó a 85 palabras de contenido
+- **Nada bloqueado.** Hay tres sesiones espontáneas de cinco consignas (una del autor, dos de compañeros).
+- ~~Una sesión hablada de las cinco consignas~~ (histórico). La sesión 4 llegó a 85 palabras de contenido
   y dio A2, pero eran respuestas **escritas y leídas** (DEC-027), así que está marcada como
   lectura y no cuenta como diagnóstico. Sigue sin existir una muestra espontánea que pase el
   umbral de 40 palabras. Se graba con `python -m speaklens.web`.
@@ -150,7 +151,9 @@ cd ~/dev/personal/speaklens
 | El repo sigue **privado** | DEC-014 lo revisó: se hace público como parte del día 10. **Riesgo asumido**: si no se publica, el bloqueante "GitHub vacío" sigue sin resolverse |
 | 4 puntos ciegos del detector | Documentados como **fuera de alcance** en `languagetool-coverage.md`. Dos exigen saber que la oración anterior estaba en pasado: es el techo de un sistema de reglas |
 | Cronograma | DEC-020: una hora por día, sin fecha de entrega. **Tres días sin avance = señal de replanificar.** Entre el 9 y el 30 de agosto pasaron 21 |
-| ~~`looks_read_aloud` no atrapa una lectura fluida~~ | **Arreglado — DEC-027.** La sesión 4 era una lectura de respuestas escritas y pasó como habla espontánea excelente. El test ya no exige mucho silencio; ahora se apoya en la pausa de búsqueda más un patrón de prosa leída. Las cuatro tomas etiquetadas están clavadas en `tests/check.py`. **El margen más fino del proyecto vive acá**: la sesión 3 (espontánea) tiene 4,10 s de pausa máxima contra un techo de 4,0 |
+| ~~`looks_read_aloud` no separa lectura de habla~~ | **Resuelto por otra vía — DEC-030.** Con seis muestras etiquetadas quedó demostrado que **no hay umbral posible**: ordenadas por pausa máxima, lectura y habla se intercalan, porque un hablante fluido no frena a buscar la palabra. La app ahora **pregunta** y la heurística es una nota al pie. Márgenes finos documentados en `tests/check.py` |
+| **El nivel parece medir registro, no dominio** | Ale y Joan dieron **A2** (21% y 16% de vocabulario sobre A2) y el texto **escrito** del autor dio **B2+** (45%) — pero los dos hablan mejor inglés que él. La prosa escrita es léxicamente más densa que el habla, y el habla de cualquiera se apoya en palabras comunes. Tres muestras no alcanzan para concluir; **es la hipótesis más probable** y explica por qué el techo de B2 nunca se toca con habla real |
+| **Los umbrales de `summary_es` nunca se calibraron** | Dice "ahí se nota que te trabás" bajo 6 palabras encadenadas, y sobre seis muestras reales el máximo es 4,84. O sea que la rama optimista no se dispara nunca. Hace falta más gente antes de mover el número |
 | ~~El nivel se apoya en la mediana~~ | **Arreglado — DEC-028.** Ahora sale de la proporción de vocabulario por encima de A2, y las palabras desconocidas se descartan en vez de contar como B2. Los umbrales separan seis textos y nada más: **no hay calibración contra corpus etiquetado**, y por eso el informe dice que es aproximado |
 | **Arriba de B2 sigue sin verse nada** | CEFR-J termina en B2. La etiqueta ahora dice "B2 o más" en vez de mentir, pero distinguir C1 de B2 necesita otro eje: complejidad sintáctica con spaCy (`en_core_web_sm`, 12 MB) — que además resolvería el margen fino de DEC-027, porque densidad léxica y largo de cláusula separan registro escrito de hablado sin depender del reloj. **Una sola incorporación cubre las dos cosas** |
 | Nombre `speaklens` | Provisional desde el día 1; nadie lo confirmó |

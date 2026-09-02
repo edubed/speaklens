@@ -32,7 +32,8 @@ CREATE TABLE IF NOT EXISTS sessions (
     level         TEXT,               -- null when the sample was too small (DEC-023)
     content_words INTEGER NOT NULL,
     read_aloud    INTEGER NOT NULL,   -- 1 when the sample looked recited, so trends can skip it
-    speaker       TEXT    NOT NULL DEFAULT ''   -- whose voice this was; '' means the owner
+    speaker       TEXT    NOT NULL DEFAULT '',  -- whose voice this was; '' means the owner
+    declared      TEXT    NOT NULL DEFAULT ''   -- 'improvised' | 'read' | '' if not asked
 );
 
 CREATE TABLE IF NOT EXISTS mistakes (
@@ -58,6 +59,7 @@ class StoredSession:
     level: str | None
     read_aloud: bool
     speaker: str
+    declared: str
     fluency: dict
 
 
@@ -79,13 +81,16 @@ def _migrate(connection: sqlite3.Connection) -> None:
     calibrated against.
     """
     columns = {row["name"] for row in connection.execute("PRAGMA table_info(sessions)")}
-    if "speaker" not in columns:
-        with connection:
-            connection.execute("ALTER TABLE sessions ADD COLUMN speaker TEXT NOT NULL DEFAULT ''")
+    for column in ("speaker", "declared"):
+        if column not in columns:
+            with connection:
+                connection.execute(
+                    f"ALTER TABLE sessions ADD COLUMN {column} TEXT NOT NULL DEFAULT ''")
 
 
 def save(connection: sqlite3.Connection, *, source: str, duration: float,
-         transcript: str, fluency, level, mistakes, speaker: str = "") -> int:
+         transcript: str, fluency, level, mistakes, speaker: str = "",
+         declared: str = "") -> int:
     """Store one run. Returns the new session id."""
     metrics = {
         "words_per_minute": fluency.words_per_minute,
@@ -94,12 +99,15 @@ def save(connection: sqlite3.Connection, *, source: str, duration: float,
         "longest_pause": fluency.longest_pause,
         "silence_ratio": fluency.silence_ratio,
         "fillers": fluency.fillers,
+        "crutches": fluency.crutches,
+        "repeats": fluency.repeats,
         "words": fluency.words,
     }
     with connection:
         cursor = connection.execute(
             "INSERT INTO sessions (created_at, source, duration, transcript, fluency,"
-            " level, content_words, read_aloud, speaker) VALUES (?,?,?,?,?,?,?,?,?)",
+            " level, content_words, read_aloud, speaker, declared)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?)",
             (
                 datetime.now(timezone.utc).isoformat(timespec="seconds"),
                 source,
@@ -110,6 +118,7 @@ def save(connection: sqlite3.Connection, *, source: str, duration: float,
                 level.content_words,
                 int(fluency.looks_read_aloud),
                 speaker,
+                declared,
             ),
         )
         session_id = int(cursor.lastrowid)
@@ -128,7 +137,9 @@ def sessions(connection: sqlite3.Connection, spontaneous_only: bool = True,
     numbers describe the reading, not the speaker (DEC-023)."""
     clauses, params = [], []
     if spontaneous_only:
-        clauses.append("read_aloud = 0")
+        # What the speaker said they did outranks what the metrics guessed: the
+        # guess was wrong about two of the first three people who used this.
+        clauses.append("(declared = 'improvised' OR (declared = '' AND read_aloud = 0))")
     if speaker is not None:
         clauses.append("speaker = ?")
         params.append(speaker)
@@ -145,6 +156,7 @@ def sessions(connection: sqlite3.Connection, spontaneous_only: bool = True,
             level=row["level"],
             read_aloud=bool(row["read_aloud"]),
             speaker=row["speaker"],
+            declared=row["declared"],
             fluency=json.loads(row["fluency"]),
         )
         for row in connection.execute(query, params)

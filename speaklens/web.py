@@ -138,15 +138,17 @@ class Handler(BaseHTTPRequestHandler):
                 self._json({"error": "ya hay un análisis corriendo"}, 409)
                 return
             try:
-                speaker = parse_qs(parsed.query).get("speaker", [""])[0].strip()[:40]
-                self._json(self._analyze(speaker))
+                query = parse_qs(parsed.query)
+                speaker = query.get("speaker", [""])[0].strip()[:40]
+                declared = query.get("declared", [""])[0].strip()
+                self._json(self._analyze(speaker, declared))
             finally:
                 _lock.release()
 
         else:
             self._json({"error": "not found"}, 404)
 
-    def _analyze(self, speaker: str = "") -> dict:
+    def _analyze(self, speaker: str = "", declared: str = "") -> dict:
         clips = sorted(self.server.clips.glob("*"))
         if not clips:
             return {"error": "no hay respuestas grabadas"}
@@ -165,7 +167,8 @@ class Handler(BaseHTTPRequestHandler):
         joined = pipeline.join(clips, self.server.clips / "answers.wav")
 
         try:
-            analysis = pipeline.analyze(joined, speaker=speaker, on_step=progress)
+            analysis = pipeline.analyze(joined, speaker=speaker, declared=declared,
+                                        on_step=progress)
         except Exception as error:                       # noqa: BLE001 - shown to the user
             _status.update(state="error", detail=str(error))
             return {"error": str(error)}
@@ -175,6 +178,7 @@ class Handler(BaseHTTPRequestHandler):
             archive_as=archived,
             session_id=analysis.session_id,
             speaker=analysis.speaker,
+            declared=analysis.declared,
             source=analysis.source,
             transcript=analysis.transcript,
             fluency=analysis.fluency,

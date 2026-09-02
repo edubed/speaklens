@@ -102,6 +102,15 @@ Four blind spots remain and are [documented as out of reach](docs/languagetool-c
 rather than left pending: two of them need to know that the previous sentence was in the
 past, which is the ceiling of any rule-based system.
 
+**Two colleagues broke the read-aloud detector on the first day it left my laptop.**
+Fluency metrics only mean something on spontaneous speech, so a heuristic guarded them: no
+reading of any kind stops for four seconds to search for a word. It held across every
+recording I made and misfired on both of the first two people who used it — both of whom
+speak better English than I do, and therefore never stop to search. Sorted by longest pause,
+the labelled takes interleave: 2.17s spoken, 2.66s read, 2.99s spoken, 3.27s read. There is
+no threshold because there is no separation. The app asks the speaker now, and the heuristic
+survives as a footnote that appears only when it disagrees with the answer.
+
 **The pause is not where you would look for it.** Whisper returns speech as one
 unpunctuated run, and sentence-anchored rules need sentence starts. Its timeline is
 contiguous — each word ends where the next begins — so silence never appears as a gap. It

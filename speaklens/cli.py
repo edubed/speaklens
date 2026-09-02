@@ -41,7 +41,9 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     speaker = next((f.split("=", 1)[1] for f in flags if f.startswith("--speaker=")), "")
-    analysis = pipeline.analyze(audio, speaker=speaker, on_step=_printer())
+    # The web UI asks; on the command line you say it yourself, or say nothing.
+    declared = "read" if "--read" in flags else "improvised" if "--improvised" in flags else ""
+    analysis = pipeline.analyze(audio, speaker=speaker, declared=declared, on_step=_printer())
     mistakes = analysis.mistakes
     tax = taxonomy.load()
 
@@ -152,6 +154,7 @@ def _write_report(analysis, flags) -> None:
         archive_as=reporter.archive_path(analysis.session_id, analysis.speaker),
         session_id=analysis.session_id,
         speaker=analysis.speaker,
+        declared=analysis.declared,
         source=analysis.source,
         transcript=analysis.transcript,
         fluency=analysis.fluency,

@@ -278,6 +278,16 @@ rankeados y un plan de estudio.
 
 ---
 
+### **DEC-030: El sistema pregunta cómo se grabó, en vez de adivinarlo**
+
+- **Fecha**: 2026-09-02
+- **Contexto**: La app se probó con dos compañeros de trabajo, **con el autor en la sala**, así que el tipo de toma no se infiere: se sabe. Los dos improvisaron y a los dos el detector los marcó como lectura. Ordenadas por pausa máxima, las seis muestras etiquetadas quedan **intercaladas**: Joan 2,17 s (hablada), lectura 2,66 s, Ale 2,99 s (hablada), lectura 3,27 s. No hay umbral posible. Y el motivo no es de calibración: **ellos hablan mejor inglés, no frenan a buscar la palabra**, que es lo único que el silencio puede ver.
+- **Decisión**: La UI **pregunta** al terminar de grabar: *improvisé todo* / *leí alguna respuesta*, y esa respuesta se guarda (columna `declared`). La declaración manda: si dice que leyó, el informe se abstiene de las métricas de fluidez; si dice que improvisó, las muestra. `looks_read_aloud` **deja de ser una compuerta** y pasa a ser una nota al pie que sólo aparece cuando contradice lo declarado. Sus umbrales bajan a 3,5 s de pausa más 1,5 marcas de duda por cada 100 palabras.
+- **Motivo**: Con seis muestras etiquetadas, ninguna señal automática separa a un hablante fluido de un lector — y agregar marcadores léxicos tampoco alcanza: Joan queda a **una décima** del umbral, menos de una palabra en toda su respuesta. Sostener la compuerta con eso sería ajustar el umbral al fixture, que es el modo de falla que este proyecto ya documentó. Preguntar es confiable acá porque es un **autodiagnóstico**: nadie se miente a sí mismo sobre si leyó. Deja de serlo el día que el evaluado no sea el interesado (decisión pendiente 8), y ahí hará falta otra cosa.
+- **Impacto**: Cambia lo que DEC-023 significa sin abandonarlo: se sigue prefiriendo abstenerse antes que degradar en silencio, pero **la condición de validez la declara la persona y no una heurística**. El histórico de fluidez filtra por `declared`, no por la heurística. Los umbrales débiles se toleran porque una nota equivocada cuesta una frase en un informe, mientras que una compuerta equivocada le costaba a alguien su medición entera. Las seis muestras quedan clavadas en `tests/check.py` con sus dos márgenes finos escritos.
+
+---
+
 ## **Decisiones Pendientes**
 
 | # | Tema | Cuándo se resuelve |

@@ -160,10 +160,23 @@ def _level_section(level) -> str:
     return _card(body)
 
 
-def _fluency_section(f) -> str:
-    if f.looks_read_aloud:
-        reasons = "".join(f"<p>{_esc(line)}</p>" for line in f.summary_es())
-        return _card(reasons, abstain=True, tag="métricas no válidas para esta muestra")
+def _fluency_section(f, declared: str = "") -> str:
+    """The metrics, unless the speaker said they read — then they measure the text.
+
+    This used to be decided by a heuristic. It was wrong about two of the first
+    three people who ever used the app, both of whom speak fluently enough that
+    they never stop to search for a word, which is the only thing silence can see.
+    So the app asks, and the heuristic is demoted to a footnote that appears only
+    when it disagrees with the answer.
+    """
+    if declared == "read":
+        return _card(
+            "<p>Dijiste que leíste alguna de las respuestas, así que estas métricas "
+            "describen el texto y no a quien habla: un texto ya resuelto se dice "
+            "sin las pausas ni los rearranques que se están midiendo acá.</p>"
+            "<p>Para medir fluidez hace falta una toma improvisada. Trabarse no "
+            "arruina la medición: <b>es</b> la medición.</p>",
+            abstain=True, tag="las métricas miden el texto, no a vos")
 
     stats = [
         (f"{f.words_per_minute:.0f}", "palabras por minuto"),
@@ -171,16 +184,21 @@ def _fluency_section(f) -> str:
         (f"{f.pauses_per_minute:.1f}", "pausas por minuto"),
         (f"{f.longest_pause:.1f}s", "la pausa más larga"),
         (f"{f.silence_ratio:.0%}", "del tiempo en silencio"),
-        (f"{f.fillers}", "muletillas de duda"),
+        (f"{f.fillers + f.crutches + f.repeats}", "marcas de duda y rearranques"),
     ]
     cells = "".join(
         f'<div class="stat"><b>{_esc(value)}</b><span>{_esc(label)}</span></div>'
         for value, label in stats
     )
     reading = "".join(f"<li>{_esc(line)}</li>" for line in f.summary_es())
-    return f'<div class="grid">{cells}</div><ul class="read">{reading}</ul>'
 
-
+    hint = ""
+    if f.looks_read_aloud:
+        hint = ('<p class="meta">Este patrón —ninguna pausa larga y casi ningún '
+                "rearranque— también lo produce alguien leyendo un texto preparado. "
+                "Si improvisaste, ignorá esta línea: es una señal débil, y sobre las "
+                "muestras que tenemos se equivoca con hablantes fluidos.</p>")
+    return f'<div class="grid">{cells}</div><ul class="read">{reading}</ul>{hint}'
 # How much of the surrounding sentence to keep around a marked fragment before
 # clipping it. Two passes run over the transcript and the second one checks the
 # whole thing as a single chunk, so a mistake's "sentence" is sometimes the entire
@@ -303,7 +321,7 @@ def _section(title: str, body: str) -> str:
 
 
 def render(*, source: str, transcript, fluency, level, mistakes, trend=(),
-           speaker: str = "", session_id: int | None = None) -> str:
+           speaker: str = "", session_id: int | None = None, declared: str = "") -> str:
     when = datetime.now().strftime("%d/%m/%Y %H:%M")
     quien = f"{_esc(speaker)} · " if speaker else ""
     header = (
@@ -314,7 +332,7 @@ def render(*, source: str, transcript, fluency, level, mistakes, trend=(),
     body = "".join([
         header,
         _section("Nivel", _level_section(level)),
-        _section("Fluidez", _fluency_section(fluency)),
+        _section("Fluidez", _fluency_section(fluency, declared)),
         _section("Errores encontrados", _mistakes_section(mistakes)),
         _section("Por dónde empezar", _plan_section(mistakes)),
         _section("Entre sesiones", _trend_section(trend)),
