@@ -75,7 +75,14 @@ li { margin: .35rem 0; }
         <li>Leer una respuesta escrita invalida las métricas de fluidez, y el sistema lo detecta.</li>
         <li>Acercate al micrófono. Abajo vas a ver el nivel mientras hablás.</li>
       </ul>
-      <div class="row"><button class="primary" id="start">Empezar</button></div>
+      <p class="hint" style="margin-bottom:.4rem">¿Quién habla? Sirve para no mezclar el
+      historial de dos personas — dejalo vacío si sos el dueño de la máquina.</p>
+      <div class="row">
+        <input id="speaker" placeholder="Nombre (opcional)" autocomplete="off"
+               style="font:inherit;padding:.65rem .8rem;border-radius:8px;
+                      border:1px solid var(--line);background:var(--bg);color:var(--ink)">
+        <button class="primary" id="start">Empezar</button>
+      </div>
       <p class="note" id="mic-error"></p>
     </div>
   </section>
@@ -282,7 +289,8 @@ async function analyze() {
   }, 1000);
 
   try {
-    const response = await fetch("/analyze", { method: "POST" });
+    const who = encodeURIComponent(el("speaker").value.trim());
+    const response = await fetch(`/analyze?speaker=${who}`, { method: "POST" });
     const result = await response.json();
     clearInterval(poll);
     if (result.error) throw new Error(result.error);

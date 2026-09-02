@@ -10,6 +10,7 @@ about what a session is.
 
     python -m speaklens.cli spike/audio/attempt.wav
     python -m speaklens.cli spike/audio/attempt.wav --open
+    python -m speaklens.cli otra.wav --speaker=juan     # otra persona, otro histórico
 """
 
 from __future__ import annotations
@@ -39,7 +40,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"no such recording: {audio}")
         return 1
 
-    analysis = pipeline.analyze(audio, on_step=_printer())
+    speaker = next((f.split("=", 1)[1] for f in flags if f.startswith("--speaker=")), "")
+    analysis = pipeline.analyze(audio, speaker=speaker, on_step=_printer())
     mistakes = analysis.mistakes
     tax = taxonomy.load()
 
@@ -147,6 +149,9 @@ def _write_report(analysis, flags) -> None:
     numbers; report.py only lays them out."""
     path = reporter.write(
         open_browser="--open" in flags,
+        archive_as=reporter.archive_path(analysis.session_id, analysis.speaker),
+        session_id=analysis.session_id,
+        speaker=analysis.speaker,
         source=analysis.source,
         transcript=analysis.transcript,
         fluency=analysis.fluency,

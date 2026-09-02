@@ -91,6 +91,31 @@ check("the two are separated", a2.above_a2_ratio < 0.2 < b2.above_a2_ratio, True
 short = estimate("Okay, I work in the project Plata Juntos. This project is designed for me")
 check("a short sample yields no level", short.level, None)
 
+# B2 is the top of the list, not a reading: CEFR-J has nothing above it, so the
+# label has to say the scale ran out instead of implying a measurement.
+check("the top of the scale says it is a ceiling", b2.label_es, "B2 o más")
+
+# Session 4, written out and read aloud on 2026-09-01. Under the median rule this
+# text came back A2 while containing architectures, relocation and stabilize — the
+# common-word mass outvoted the tail. It must land above A2 now.
+SESSION_4 = """
+Looking back, the last project I finished was an automated internal processing
+pipeline. We built custom workflows, architectures and deployed them directly to
+production. The hardest part was handling unexpected file formats, so we decided to
+implement strict validation rules first. Overall, it took me about three weeks to
+stabilize the system and deliver it with full operation visibility. If a company in
+Madrid offered me a job tomorrow, I would move after the initial losses.
+"""
+prose = estimate(SESSION_4)
+check("dense prose is no longer read as A2", prose.level in {"B1", "B2"}, True)
+
+# Words neither source has ever seen are transcription artefacts or proper nouns,
+# not advanced vocabulary. Counting them as B2 inflated the ratio that decides the
+# level — two invented words were 6% of a real session's distinct vocabulary.
+noise = estimate(A2_TEXT + " canility milanesas zzzqx")
+check("unknown words are dropped, not banded as B2", noise.unknown_words, 3)
+check("dropping them does not move the level", noise.level, a2.level)
+
 print()
 if failures:
     print(f"{len(failures)} failed")

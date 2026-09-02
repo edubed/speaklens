@@ -98,8 +98,12 @@ class Handler(BaseHTTPRequestHandler):
             self._send(page.encode("utf-8"), "text/html; charset=utf-8")
         elif route == "/status":
             self._json(_status)
-        elif route == "/report":
+        elif route.startswith("/report"):
+            # /report is the latest run; /reports/<file> is the copy that survives
+            # the next person's turn.
             path = reporter.DEFAULT_PATH
+            if route.startswith("/reports/"):
+                path = reporter.ARCHIVE / Path(route).name
             if not path.exists():
                 self._send(b"todavia no hay informe", "text/plain; charset=utf-8", 404)
                 return
@@ -117,25 +121,32 @@ class Handler(BaseHTTPRequestHandler):
             if not body:
                 self._json({"error": "clip vacío"}, 400)
                 return
+            # The first clip of a run clears the directory. Without this, a person
+            # who answers three prompts inherits the fourth and fifth of whoever
+            # went before them — and the report never says so.
+            if int(order) == 1:
+                for stale in self.server.clips.glob("*"):
+                    stale.unlink()
             clip = self.server.clips / f"{int(order):02d}{EXTENSIONS.get(content_type, '.webm')}"
             clip.write_bytes(body)
             self._json({"ok": True, "bytes": len(body)})
 
-        elif parsed.path == "/analyze":
+        elif parsed.path.rstrip("/") == "/analyze":
             # One diagnostic at a time. The machine has 8 GB and Whisper wants most
             # of them; a second run started from a stray double-click would swap.
             if not _lock.acquire(blocking=False):
                 self._json({"error": "ya hay un análisis corriendo"}, 409)
                 return
             try:
-                self._json(self._analyze())
+                speaker = parse_qs(parsed.query).get("speaker", [""])[0].strip()[:40]
+                self._json(self._analyze(speaker))
             finally:
                 _lock.release()
 
         else:
             self._json({"error": "not found"}, 404)
 
-    def _analyze(self) -> dict:
+    def _analyze(self, speaker: str = "") -> dict:
         clips = sorted(self.server.clips.glob("*"))
         if not clips:
             return {"error": "no hay respuestas grabadas"}
@@ -154,12 +165,16 @@ class Handler(BaseHTTPRequestHandler):
         joined = pipeline.join(clips, self.server.clips / "answers.wav")
 
         try:
-            analysis = pipeline.analyze(joined, on_step=progress)
+            analysis = pipeline.analyze(joined, speaker=speaker, on_step=progress)
         except Exception as error:                       # noqa: BLE001 - shown to the user
             _status.update(state="error", detail=str(error))
             return {"error": str(error)}
 
+        archived = reporter.archive_path(analysis.session_id, analysis.speaker)
         reporter.write(
+            archive_as=archived,
+            session_id=analysis.session_id,
+            speaker=analysis.speaker,
             source=analysis.source,
             transcript=analysis.transcript,
             fluency=analysis.fluency,
@@ -168,12 +183,13 @@ class Handler(BaseHTTPRequestHandler):
             trend=analysis.trend,
         )
         _status.update(state="done", detail="")
-        print(f"  informe: {reporter.DEFAULT_PATH}", flush=True)
-        return {"ok": True, "report": "/report"}
+        print(f"  informe: {archived}", flush=True)
+        return {"ok": True, "report": f"/reports/{archived.name}"}
 
 
 def serve(port: int = PORT, open_browser: bool = True) -> None:
     clips = Path(tempfile.mkdtemp(prefix="speaklens-clips-"))
+    reporter.ARCHIVE.mkdir(parents=True, exist_ok=True)
     server = ThreadingHTTPServer((HOST, port), Handler)
     server.clips = clips
 

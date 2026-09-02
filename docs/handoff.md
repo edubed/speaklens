@@ -88,7 +88,7 @@ Las 24 están en [`decision_log.md`](decision_log.md). Las que más condicionan 
 
 ## 5. Estado del código
 
-- **Rama**: `main`, sincronizada con `origin/main`. **29 commits.**
+- **Rama**: `main`, sincronizada con `origin/main`. **31 commits.**
 - **Cambios sin commitear**: **ninguno**. `git status` limpio.
 - **Tests**:
   - `.venv/bin/python tests/check.py` → *all checks passed* (umbrales fijados contra muestras reales)
@@ -151,8 +151,8 @@ cd ~/dev/personal/speaklens
 | 4 puntos ciegos del detector | Documentados como **fuera de alcance** en `languagetool-coverage.md`. Dos exigen saber que la oración anterior estaba en pasado: es el techo de un sistema de reglas |
 | Cronograma | DEC-020: una hora por día, sin fecha de entrega. **Tres días sin avance = señal de replanificar.** Entre el 9 y el 30 de agosto pasaron 21 |
 | ~~`looks_read_aloud` no atrapa una lectura fluida~~ | **Arreglado — DEC-027.** La sesión 4 era una lectura de respuestas escritas y pasó como habla espontánea excelente. El test ya no exige mucho silencio; ahora se apoya en la pausa de búsqueda más un patrón de prosa leída. Las cuatro tomas etiquetadas están clavadas en `tests/check.py`. **El margen más fino del proyecto vive acá**: la sesión 3 (espontánea) tiene 4,10 s de pausa máxima contra un techo de 4,0 |
-| **El nivel se apoya en la mediana y la mediana la dominan las palabras que todos usan** | La sesión 4 dio **A2** sobre un texto con `architectures`, `relocation`, `validation`, `stabilize`, `transition`. Bandas: A1 25, A2 17, B1 20, B2 17, y `above_a2` en **47%**, tres puntos abajo del salto a B1. La señal está en la cola, no en el medio — y es el mismo defecto que produce el techo en B2 |
-| **Las palabras que Whisper inventa cuentan como vocabulario raro** | `_band()` manda a B2 todo lo que no conoce ninguna de las dos fuentes, así que un error de transcripción (`maining`) suma una palabra B2. Infla el numerador justo de la métrica que decide el nivel |
+| ~~El nivel se apoya en la mediana~~ | **Arreglado — DEC-028.** Ahora sale de la proporción de vocabulario por encima de A2, y las palabras desconocidas se descartan en vez de contar como B2. Los umbrales separan seis textos y nada más: **no hay calibración contra corpus etiquetado**, y por eso el informe dice que es aproximado |
+| **Arriba de B2 sigue sin verse nada** | CEFR-J termina en B2. La etiqueta ahora dice "B2 o más" en vez de mentir, pero distinguir C1 de B2 necesita otro eje: complejidad sintáctica con spaCy (`en_core_web_sm`, 12 MB) — que además resolvería el margen fino de DEC-027, porque densidad léxica y largo de cláusula separan registro escrito de hablado sin depender del reloj. **Una sola incorporación cubre las dos cosas** |
 | Nombre `speaklens` | Provisional desde el día 1; nadie lo confirmó |
 | Sin captura del informe en el README | El `report.html` real contiene la voz del usuario y está gitignoreado. La captura del día 10 hay que sacarla de una muestra pensada para mostrarse |
 | Loop conversacional con TTS | Fuera de v1 desde el principio. `say` de macOS costaría 0 GB de RAM si alguna vez se retoma |

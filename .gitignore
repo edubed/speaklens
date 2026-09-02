@@ -19,3 +19,4 @@ models/
 # Both contain transcripts of the user speaking; never leave the machine.
 sessions.db
 report.html
+reports/

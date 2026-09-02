@@ -11,7 +11,9 @@ Median Zipf falls monotonically across A1→B2 in the profile, so the two agree.
 
 Known ceilings, both stated in the report rather than hidden:
 
-  * CEFR-J stops at B2, so C1 and C2 are indistinguishable here.
+  * CEFR-J stops at B2, so C1 and C2 are indistinguishable here. The report says
+    "B2 o más" rather than "B2" for that reason: the estimate saturates, and a bare
+    letter would read as a measurement where there is only a ceiling.
   * Vocabulary is one dimension of a level, not the whole of it. Someone can know
     B2 words and assemble them badly, which is why this runs beside the fluency
     metrics rather than instead of them.
@@ -60,6 +62,21 @@ FUNCTION_WORDS = {
 }
 
 
+# Where the level changes, read off the share of distinct vocabulary above A2.
+#
+# This replaced a median, and the reason is structural rather than a matter of
+# tuning. Every speaker, at every level, builds most sentences from the same few
+# hundred words — "back", "job", "year", "make". That mass is identical at A1 and
+# at C2, so a median lands inside it no matter who is talking, and the estimate
+# ends up describing English rather than the speaker. What varies is the tail.
+#
+# Measured on six texts (docs/languagetool-coverage.md keeps the table): two
+# written as A2 and B2 references, and four real sessions. The boundaries below
+# separate those six and nothing more — they are not calibrated against a labelled
+# corpus, which is why the report calls the level approximate.
+BANDS_ABOVE_A2 = [(0.45, "B2"), (0.25, "B1"), (0.10, "A2")]
+
+
 @dataclass(frozen=True)
 class LevelEstimate:
     level: str | None
@@ -68,19 +85,40 @@ class LevelEstimate:
     type_token_ratio: float
     band_counts: dict[str, int]
     above_a2_ratio: float
+    unknown_words: int
     reason: str
+
+    @property
+    def saturated(self) -> bool:
+        """True when the estimate hit the top of the scale rather than landing on it."""
+        return self.level == LEVELS[-1]
+
+    @property
+    def label_es(self) -> str:
+        """B2 is the top of the scale, not a reading. Say so where the letter goes."""
+        if self.level is None:
+            return "—"
+        return "B2 o más" if self.level == "B2" else self.level
 
     def summary_es(self) -> list[str]:
         if self.level is None:
             return [self.reason]
         lines = [
-            f"Nivel estimado por vocabulario: {self.level}.",
+            f"Nivel estimado por vocabulario: {self.label_es}.",
             f"{self.content_words} palabras de contenido, {self.distinct_words} distintas "
             f"(riqueza léxica {self.type_token_ratio:.2f}).",
-            f"El {self.above_a2_ratio:.0%} de lo que decís está por encima de A2.",
+            f"El {self.above_a2_ratio:.0%} de tu vocabulario está por encima de A2, "
+            "que es la parte que separa un nivel de otro.",
         ]
         if self.band_counts.get("B2"):
             lines.append(f"Usaste {self.band_counts['B2']} palabras de banda B2.")
+        if self.level == "B2":
+            lines.append("La lista de referencia termina en B2, así que arriba de ahí este "
+                         "instrumento no distingue: C1 y C2 le dan lo mismo.")
+        if self.unknown_words:
+            lines.append(f"{self.unknown_words} palabras quedaron afuera porque no las conoce "
+                         "ninguna de las dos fuentes: nombres propios, o inventos de la "
+                         "transcripción.")
         lines.append("Mide vocabulario, no gramática: se lee junto a la fluidez, no en su lugar.")
         return lines
 
@@ -102,7 +140,15 @@ def _profile(path: Path = PROFILE) -> dict[str, str]:
     return levels
 
 
-def _band(word: str) -> str:
+def _band(word: str) -> str | None:
+    """The CEFR band of one word, or None when neither source has ever seen it.
+
+    Unknown used to mean B2, on the theory that a word nobody lists must be a rare
+    one. On real transcripts it mostly means the transcriber invented something, or
+    the speaker said a proper noun: "canility", "milanesas". Counting those as
+    advanced vocabulary inflates the exact ratio that decides the level, so they
+    are dropped and counted separately instead.
+    """
     listed = _profile().get(word)
     if listed:
         return listed
@@ -111,7 +157,7 @@ def _band(word: str) -> str:
 
     zipf = zipf_frequency(word, "en")
     if zipf == 0.0:
-        return "B2"          # unknown to both sources: treat as rare, not as missing
+        return None
     for floor, level in ZIPF_BANDS:
         if zipf >= floor:
             return level
@@ -135,28 +181,39 @@ def estimate(text: str) -> LevelEstimate:
             type_token_ratio=0.0,
             band_counts={},
             above_a2_ratio=0.0,
+            unknown_words=0,
             reason=(
                 f"Muestra insuficiente para estimar nivel: {len(words)} palabras de "
                 f"contenido, hacen falta {MIN_CONTENT_WORDS}. Respondé más consignas."
             ),
         )
 
-    bands = [_band(w) for w in distinct]
-    counts = {level: bands.count(level) for level in LEVELS}
-    above_a2 = sum(counts[l] for l in ("B1", "B2")) / len(bands)
+    banded = [b for b in (_band(w) for w in distinct) if b is not None]
+    unknown = len(distinct) - len(banded)
+    if not banded:
+        return LevelEstimate(
+            level=None, content_words=len(words), distinct_words=len(distinct),
+            type_token_ratio=0.0, band_counts={}, above_a2_ratio=0.0,
+            unknown_words=unknown,
+            reason="Ninguna de las palabras es reconocible como inglés. Revisá la grabación.",
+        )
 
-    # The median band of the distinct vocabulary, nudged up when a substantial part
-    # of it sits above A2 — reaching for less common words is the thing that
-    # distinguishes the level, and a median alone would hide it.
-    median_rank = statistics.median(RANK[b] for b in bands)
-    rank = int(median_rank) + (1 if above_a2 >= 0.5 else 0)
+    counts = {level: banded.count(level) for level in LEVELS}
+    above_a2 = (counts["B1"] + counts["B2"]) / len(banded)
+
+    level = "A1"
+    for floor, candidate in BANDS_ABOVE_A2:
+        if above_a2 >= floor:
+            level = candidate
+            break
 
     return LevelEstimate(
-        level=LEVELS[min(rank, len(LEVELS) - 1)],
+        level=level,
         content_words=len(words),
         distinct_words=len(distinct),
         type_token_ratio=len(distinct) / len(words),
         band_counts=counts,
         above_a2_ratio=above_a2,
+        unknown_words=unknown,
         reason="",
     )

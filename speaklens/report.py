@@ -38,6 +38,19 @@ from . import themes as taxonomy
 from .transcribe import MODEL
 
 DEFAULT_PATH = Path(__file__).resolve().parent.parent / "report.html"
+ARCHIVE = Path(__file__).resolve().parent.parent / "reports"
+
+
+def archive_path(session_id: int | None, speaker: str = "") -> Path:
+    """Where this session's report is kept, so the next one does not overwrite it.
+
+    report.html is the latest run and the one the CLI prints; this is the copy that
+    survives. It only started mattering when the app was handed to a second person:
+    five people in a row used to leave one report.
+    """
+    who = "".join(c for c in speaker.lower().replace(" ", "-") if c.isalnum() or c == "-")
+    name = f"{session_id or 0:03d}" + (f"-{who}" if who else "")
+    return ARCHIVE / f"{name}.html"
 
 STYLE = """
 :root {
@@ -136,7 +149,8 @@ def _level_section(level) -> str:
     head, rest = lines[0], lines[1:]
     bands = " · ".join(f"{band} {count}" for band, count in level.band_counts.items() if count)
     body = (
-        f'<div class="level"><span class="letter">{_esc(level.level)}</span>'
+        f'<div class="level"><span class="letter">{_esc(level.level)}'
+        f'{"+" if level.saturated else ""}</span>'
         f"<div><p>{_esc(head)}</p>"
         f'<p class="meta">bandas de vocabulario: {_esc(bands)}</p></div></div>'
         + '<ul class="read">'
@@ -288,11 +302,13 @@ def _section(title: str, body: str) -> str:
     return f"<h2>{_esc(title)}</h2>{body}" if body else ""
 
 
-def render(*, source: str, transcript, fluency, level, mistakes, trend=()) -> str:
+def render(*, source: str, transcript, fluency, level, mistakes, trend=(),
+           speaker: str = "", session_id: int | None = None) -> str:
     when = datetime.now().strftime("%d/%m/%Y %H:%M")
+    quien = f"{_esc(speaker)} · " if speaker else ""
     header = (
         "<h1>SpeakLens — diagnóstico</h1>"
-        f'<p class="meta">{_esc(source)} · {transcript.duration:.0f}s · '
+        f'<p class="meta">{quien}{_esc(source)} · {transcript.duration:.0f}s · '
         f"{len(transcript.words)} palabras · {_esc(when)}</p>"
     )
     body = "".join([
@@ -323,8 +339,13 @@ def render(*, source: str, transcript, fluency, level, mistakes, trend=()) -> st
     )
 
 
-def write(path: Path = DEFAULT_PATH, *, open_browser: bool = False, **session) -> Path:
-    path.write_text(render(**session), encoding="utf-8")
+def write(path: Path = DEFAULT_PATH, *, open_browser: bool = False,
+          archive_as: Path | None = None, **session) -> Path:
+    html = render(**session)
+    path.write_text(html, encoding="utf-8")
+    if archive_as is not None:
+        archive_as.parent.mkdir(parents=True, exist_ok=True)
+        archive_as.write_text(html, encoding="utf-8")
     if open_browser:
         webbrowser.open(path.resolve().as_uri())
     return path

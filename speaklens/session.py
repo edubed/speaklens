@@ -42,6 +42,8 @@ TRIM_EDGES = (
 
 @dataclass(frozen=True)
 class Analysis:
+    session_id: int | None
+    speaker: str
     source: str
     transcript: Transcript
     fluency: Fluency
@@ -50,7 +52,7 @@ class Analysis:
     trend: list[tuple[str, float]]
 
 
-def analyze(audio: Path, *, persist: bool = True,
+def analyze(audio: Path, *, speaker: str = "", persist: bool = True,
             on_step: Callable[[str, Any], None] = lambda step, data=None: None) -> Analysis:
     """Run the whole diagnostic over one recording.
 
@@ -71,11 +73,12 @@ def analyze(audio: Path, *, persist: bool = True,
     on_step("detect", None)
     mistakes = detector.detect(transcript.sentences)
 
+    session_id: int | None = None
     trend: list[tuple[str, float]] = []
     if persist:
         connection = storage.connect()
         try:
-            storage.save(
+            session_id = storage.save(
                 connection,
                 source=audio.name,
                 duration=transcript.duration,
@@ -83,12 +86,17 @@ def analyze(audio: Path, *, persist: bool = True,
                 fluency=fluency,
                 level=level,
                 mistakes=mistakes,
+                speaker=speaker,
             )
-            trend = storage.fluency_trend(connection, "mean_run_length")
+            # Scoped to this speaker: a line that walks across several people
+            # answers nobody's question about whether they are improving.
+            trend = storage.fluency_trend(connection, "mean_run_length", speaker=speaker)
         finally:
             connection.close()
 
     return Analysis(
+        session_id=session_id,
+        speaker=speaker,
         source=audio.name,
         transcript=transcript,
         fluency=fluency,

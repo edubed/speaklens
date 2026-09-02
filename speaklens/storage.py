@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS sessions (
     fluency       TEXT    NOT NULL,   -- json, so adding a metric needs no migration
     level         TEXT,               -- null when the sample was too small (DEC-023)
     content_words INTEGER NOT NULL,
-    read_aloud    INTEGER NOT NULL    -- 1 when the sample looked recited, so trends can skip it
+    read_aloud    INTEGER NOT NULL,   -- 1 when the sample looked recited, so trends can skip it
+    speaker       TEXT    NOT NULL DEFAULT ''   -- whose voice this was; '' means the owner
 );
 
 CREATE TABLE IF NOT EXISTS mistakes (
@@ -56,6 +57,7 @@ class StoredSession:
     duration: float
     level: str | None
     read_aloud: bool
+    speaker: str
     fluency: dict
 
 
@@ -64,11 +66,26 @@ def connect(path: Path = DEFAULT_DB) -> sqlite3.Connection:
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
     connection.executescript(SCHEMA)
+    _migrate(connection)
     return connection
 
 
+def _migrate(connection: sqlite3.Connection) -> None:
+    """Add columns that CREATE TABLE IF NOT EXISTS cannot add to a table that exists.
+
+    Databases predating a column are the normal case here, not an edge one: the
+    file holds real sessions from before the column was thought of, and dropping it
+    to get a clean schema would throw away the only measurements the thresholds are
+    calibrated against.
+    """
+    columns = {row["name"] for row in connection.execute("PRAGMA table_info(sessions)")}
+    if "speaker" not in columns:
+        with connection:
+            connection.execute("ALTER TABLE sessions ADD COLUMN speaker TEXT NOT NULL DEFAULT ''")
+
+
 def save(connection: sqlite3.Connection, *, source: str, duration: float,
-         transcript: str, fluency, level, mistakes) -> int:
+         transcript: str, fluency, level, mistakes, speaker: str = "") -> int:
     """Store one run. Returns the new session id."""
     metrics = {
         "words_per_minute": fluency.words_per_minute,
@@ -82,7 +99,7 @@ def save(connection: sqlite3.Connection, *, source: str, duration: float,
     with connection:
         cursor = connection.execute(
             "INSERT INTO sessions (created_at, source, duration, transcript, fluency,"
-            " level, content_words, read_aloud) VALUES (?,?,?,?,?,?,?,?)",
+            " level, content_words, read_aloud, speaker) VALUES (?,?,?,?,?,?,?,?,?)",
             (
                 datetime.now(timezone.utc).isoformat(timespec="seconds"),
                 source,
@@ -92,6 +109,7 @@ def save(connection: sqlite3.Connection, *, source: str, duration: float,
                 level.level,
                 level.content_words,
                 int(fluency.looks_read_aloud),
+                speaker,
             ),
         )
         session_id = int(cursor.lastrowid)
@@ -104,12 +122,19 @@ def save(connection: sqlite3.Connection, *, source: str, duration: float,
     return session_id
 
 
-def sessions(connection: sqlite3.Connection, spontaneous_only: bool = True) -> list[StoredSession]:
+def sessions(connection: sqlite3.Connection, spontaneous_only: bool = True,
+             speaker: str | None = None) -> list[StoredSession]:
     """Sessions oldest first. Recited samples are excluded by default: their fluency
     numbers describe the reading, not the speaker (DEC-023)."""
-    query = "SELECT * FROM sessions"
+    clauses, params = [], []
     if spontaneous_only:
-        query += " WHERE read_aloud = 0"
+        clauses.append("read_aloud = 0")
+    if speaker is not None:
+        clauses.append("speaker = ?")
+        params.append(speaker)
+    query = "SELECT * FROM sessions"
+    if clauses:
+        query += " WHERE " + " AND ".join(clauses)
     query += " ORDER BY id"
     return [
         StoredSession(
@@ -119,9 +144,10 @@ def sessions(connection: sqlite3.Connection, spontaneous_only: bool = True) -> l
             duration=row["duration"],
             level=row["level"],
             read_aloud=bool(row["read_aloud"]),
+            speaker=row["speaker"],
             fluency=json.loads(row["fluency"]),
         )
-        for row in connection.execute(query)
+        for row in connection.execute(query, params)
     ]
 
 
@@ -145,10 +171,16 @@ def mistakes_by_theme(connection: sqlite3.Connection,
     return grouped
 
 
-def fluency_trend(connection: sqlite3.Connection, metric: str) -> list[tuple[str, float]]:
-    """(date, value) for one fluency metric across spontaneous sessions."""
+def fluency_trend(connection: sqlite3.Connection, metric: str,
+                  speaker: str = "") -> list[tuple[str, float]]:
+    """(date, value) for one fluency metric across one speaker's spontaneous sessions.
+
+    Scoped to a speaker on purpose. The chart answers "am I improving", and a line
+    that walks across several people answers nothing at all — which is exactly what
+    it did the first time the app was handed to someone else.
+    """
     return [
         (s.created_at[:10], s.fluency[metric])
-        for s in sessions(connection)
+        for s in sessions(connection, speaker=speaker)
         if metric in s.fluency
     ]

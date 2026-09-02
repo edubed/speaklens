@@ -258,6 +258,26 @@ rankeados y un plan de estudio.
 
 ---
 
+### **DEC-028: El nivel se lee en la cola de la distribución, no en la mediana**
+
+- **Fecha**: 2026-09-01
+- **Contexto**: La sesión 4 devolvió **A2** sobre un texto que contenía `architectures`, `relocation`, `validation`, `stabilize` y `transition`. Bandas: A1 25, A2 17, B1 20, B2 17. El estimador usaba la **mediana** de las bandas del vocabulario distinto, más un empujón si más de la mitad superaba A2 — y quedó en 47%, tres puntos abajo del salto.
+- **Decisión**: El nivel sale de la **proporción de vocabulario distinto por encima de A2**: ≥45% B2, ≥25% B1, ≥10% A2, y A1 abajo. Además, las palabras que **no conoce ninguna de las dos fuentes se descartan** en lugar de contarse como B2, y se informa cuántas fueron. Cuando satura, la etiqueta dice **"B2 o más"** y el informe muestra `B2+`.
+- **Motivo**: El defecto de la mediana es estructural, no de calibración: **todo hablante, de A1 a C2, arma la mayoría de sus frases con las mismas doscientas palabras** — "back", "job", "year", "make". Esa masa es idéntica en todos los niveles, así que la mediana cae siempre adentro de ella y termina describiendo al idioma inglés en vez de al hablante. Lo que varía con el nivel es la cola. Y las palabras desconocidas eran ruido de transcripción (`canility`, `milanesas`) inflando justo el numerador que decide todo. Lo de "B2 o más" es DEC-023 aplicado al techo: CEFR-J no tiene nada arriba de B2, así que una letra sola se leería como medición donde sólo hay saturación.
+- **Impacto**: Los umbrales separan **seis textos** —dos escritos como referencia A2 y B2, cuatro sesiones reales— y nada más. No están calibrados contra un corpus etiquetado, y el informe dice que la estimación es aproximada. Para distinguir arriba de B2 hace falta otro eje: complejidad sintáctica, que además serviría para detectar lectura sin depender de las pausas (DEC-027).
+
+---
+
+### **DEC-029: El informe deja de ser de una sola persona**
+
+- **Fecha**: 2026-09-01
+- **Contexto**: La UI se iba a probar con varias personas el mismo día. Con el diseño de un solo usuario eso rompía en tres lugares silenciosos: `report.html` se sobrescribe en cada corrida, el gráfico "por sesión" mezcla a todos los hablantes en una línea, y los clips de quien contestó cinco consignas quedaban en el directorio para el que contestara tres.
+- **Decisión**: Las sesiones guardan **quién habló** (columna `speaker`, migración con `ALTER TABLE`; vacío significa el dueño de la máquina). Cada informe se archiva en `reports/<id>-<nombre>.html` además de `report.html`, que sigue siendo el último. El histórico de fluidez se filtra por hablante. El primer clip de una tanda **limpia el directorio**.
+- **Motivo**: Los tres eran fallas mudas: producen un resultado prolijo y equivocado. La peor era el gráfico, que respondía "¿estoy mejorando?" con una línea que camina entre personas distintas.
+- **Impacto**: `reports/` queda gitignoreado como `sessions.db` y `report.html` — son transcripciones de voces ajenas, y encima ajenas. Si esto alguna vez se usa con candidatos (decisión pendiente 8), el consentimiento y el borrado dejan de ser una nota al pie y pasan a ser código.
+
+---
+
 ## **Decisiones Pendientes**
 
 | # | Tema | Cuándo se resuelve |
