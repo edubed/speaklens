@@ -24,8 +24,9 @@ minutos, que es el entregable final.
 
 ## 2. Qué es esto
 
-- **Repo**: `~/dev/personal/speaklens` — GitHub **privado** `edubed/speaklens`, remote
-  `github-personal` (cuenta personal, **no** la de Kenility; ambas conviven en `~/.ssh/config`).
+- **Repo**: `~/dev/personal/speaklens` — GitHub `edubed/speaklens`, remote `github-personal`.
+  El host `github-personal` de `~/.ssh/config` apunta a la clave de la cuenta personal; la
+  máquina tiene más de una cuenta de GitHub configurada, así que el remote no es `github.com`.
 - **Máquina**: MacBook Air M1, **8 GB**. La restricción de RAM define casi todo el diseño.
 - **Para quién**: Edu, hispanohablante en B1 que apunta a AI/Automation Engineer remoto.
 - **Por qué offline**: es el argumento del portfolio. Correr entero sin red en 8 GB es lo
