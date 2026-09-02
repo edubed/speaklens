@@ -238,6 +238,16 @@ rankeados y un plan de estudio.
 
 ---
 
+### **DEC-026: La UI guiada arregla la muestra, no la estética — y su servidor es la biblioteca estándar**
+
+- **Fecha**: 2026-09-01
+- **Contexto**: La primera sesión real de cinco consignas volvió con **90 segundos y tres consignas sin contestar**, y la estimación de nivel se abstuvo **dos palabras de contenido** debajo del umbral. Nada guiaba al hablante: `record.sh` imprime una sola consigna y después es memoria y voluntad. El problema no era que la terminal fuera fea; era que la muestra salía mal.
+- **Decisión**: `speaklens/web.py` + `speaklens/recorder.html` — una página local que muestra una consigna por vez, cronometra contra los 25 segundos objetivo, muestra el nivel del micrófono mientras hablás y manda las cinco respuestas juntas. El servidor es `http.server` de la biblioteca estándar: cuatro rutas, **cero dependencias nuevas**. Liga a `127.0.0.1`, nunca a `0.0.0.0`.
+- **Motivo**: Revisa DEC-025 exactamente donde su razón deja de valer: capturar un micrófono necesita un origen desde donde servir la página, así que acá sí hace falta un servidor. Pero "sin framework" se mantiene, y cero dependencias nuevas dejan intactos `setup.sh` y el argumento de que todo corre offline. Que la página venga de `localhost` no es un detalle: los navegadores sólo entregan `getUserMedia` en contexto seguro, y `localhost` lo es mientras que una IP de la red local no. Ligar a `127.0.0.1` es por lo mismo que `sessions.db` está gitignoreado — es la voz de alguien, no tiene por qué ser alcanzable desde la red del café.
+- **Impacto**: Las cinco respuestas **se unen en una sola grabación** antes de analizar, porque el nivel necesita 40 palabras de contenido y ninguna respuesta sola llega (DEC-008, DEC-023). Se recortan los silencios de los bordes de cada clip: sin eso, el hueco entre "terminé de hablar" y "apreté parar" se convierte en una pausa dentro de la grabación y las métricas medirían el tiempo de reacción al botón. Aparece `speaklens/session.py` para que la terminal y la web corran **la misma secuencia**: una secuencia duplicada es como dos front ends empiezan a discrepar sobre qué es una sesión.
+
+---
+
 ## **Decisiones Pendientes**
 
 | # | Tema | Cuándo se resuelve |
@@ -248,5 +258,5 @@ rankeados y un plan de estudio.
 | 4 | Qué se hace con el audio grabado (propuesta: no persistir, guardar sólo el transcript) | Antes del primer commit |
 | 5 | Loop conversacional hablado con TTS (`say` de macOS, 0 GB de RAM) | v2, fuera de alcance |
 | 6 | Evaluación de pronunciación a nivel fonema | Descartado para v1 por DEC-003 |
-| 7 | **UI guiada de entrada (v2)**: una página que lleve al hablante por las cinco consignas y grabe desde el navegador. Reabre FastAPI, que DEC-025 había sacado — ahora con motivo real: un HTML estático no puede correr Whisper. La página la sirve el propio servidor local, **no** un CDN: si la UI hay que bajarla de internet, la app deja de correr con el wifi apagado, que es su único argumento (DEC-001). Lo que arregla no es la estética sino la muestra — la primera sesión real quedó en 90 s y tres consignas sin contestar porque nada guiaba al hablante | Después del día 10, y con `/mi-interrogame` antes de escribir código |
+| ~~7~~ | ✅ **Resuelta por DEC-026.** **UI guiada de entrada**: una página que lleve al hablante por las cinco consignas y grabe desde el navegador. Reabre FastAPI, que DEC-025 había sacado — ahora con motivo real: un HTML estático no puede correr Whisper. La página la sirve el propio servidor local, **no** un CDN: si la UI hay que bajarla de internet, la app deja de correr con el wifi apagado, que es su único argumento (DEC-001). Lo que arregla no es la estética sino la muestra — la primera sesión real quedó en 90 s y tres consignas sin contestar porque nada guiaba al hablante | Hecha el 1/9/2026 |
 | 8 | **Caso de uso "reclutadores"**: medir el nivel de inglés de candidatos. Cambia el usuario, y con él la topología: la voz deja de pertenecer al dueño de la máquina. Dos límites duros antes de mostrárselo a nadie — el techo de CEFR-J en B2 hace **indistinguibles C1 y C2**, que es justo la frontera que un reclutador necesita; y evaluar candidatos con un sistema automático arrastra consentimiento, retención y borrado (en la UE es además categoría de alto riesgo del AI Act; en Argentina aplica la ley 25.326). La abstención de DEC-023 y el "esto es lo que pudimos detectar" de DEC-024 juegan a favor acá | Producto aparte; es decisión de producto, no técnica |

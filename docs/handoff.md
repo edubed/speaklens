@@ -1,8 +1,8 @@
 # SpeakLens — Handoff
 
-**Última actualización:** 2026-08-30 (día 8) · **Autor:** Edu Bedini (+ Claude)
-**Fase:** Ejecución · **Estado:** ▶ activo, días 0–9 de 10 completos
-**Retomá acá →** §7 paso 1: grabar las 5 consignas con `./spike/record.sh --prompt N` (N=1..5) para desbloquear la estimación de nivel, que hoy se abstiene por muestra corta. Es lo único que espera a una persona, y ya hay pantalla donde mirar el resultado.
+**Última actualización:** 2026-09-01 · **Autor:** Edu Bedini (+ Claude)
+**Fase:** Ejecución · **Estado:** ▶ activo, días 0–9 de 10 completos + UI guiada (DEC-026)
+**Retomá acá →** §7: queda el **día 10** — README final, video de 2 minutos y hacer el repo público. Todo lo técnico está construido y hay dos preguntas abiertas de medición en §8 que valen más que cualquier feature nueva.
 
 ---
 
@@ -53,6 +53,7 @@ y no podría detectarlo (DEC-004).
 | 7 | Explicaciones en español por regla | `data/explanations.yaml`, `speaklens/explain.py` |
 | 8 | Pantalla del informe | `speaklens/report.py` (+ `--open` en `cli.py`) |
 | 9 | Instalación reproducible | `setup.sh` |
+| — | UI guiada de grabación (fuera del plan de 10 días) | `speaklens/web.py`, `speaklens/recorder.html`, `speaklens/session.py` |
 
 **Números actuales, todos reproducibles:**
 
@@ -87,7 +88,7 @@ Las 24 están en [`decision_log.md`](decision_log.md). Las que más condicionan 
 
 ## 5. Estado del código
 
-- **Rama**: `main`, sincronizada con `origin/main`. **27 commits.**
+- **Rama**: `main`, sincronizada con `origin/main`. **29 commits.**
 - **Cambios sin commitear**: **ninguno**. `git status` limpio.
 - **Tests**:
   - `.venv/bin/python tests/check.py` → *all checks passed* (umbrales fijados contra muestras reales)
@@ -109,10 +110,8 @@ sólo ellas ven; `./setup.sh` lo arregla.
 
 Nada bloqueado técnicamente. Lo único que espera **a una persona**:
 
-- **Grabar las 5 consignas.** La estimación de nivel se abstiene con menos de 40 palabras de
-  contenido, y la única grabación espontánea que existe dio 12. El informe ya muestra ese
-  hueco de forma prolija —una tarjeta ámbar que dice qué muestra falta, DEC-023— pero en el
-  video hay que poder mostrar también el caso en que sí estima.
+- **Nada.** La estimación de nivel ya no se abstiene: la sesión 4 (1/9, 114 s) dio **A2 con
+  85 palabras de contenido**. Lo que queda es grabar el video, que es decisión del autor.
 
 ---
 
@@ -122,13 +121,14 @@ Nada bloqueado técnicamente. Lo único que espera **a una persona**:
 cd ~/dev/personal/speaklens
 ```
 
-1. **Grabar las cinco consignas, más cerca del micrófono.** Una por vez:
+1. **Grabar con la UI guiada**, que es lo que el video debería mostrar:
    ```bash
-   ./spike/record.sh --prompt 1     # y luego 2, 3, 4, 5
-   .venv/bin/python -m speaklens.cli spike/audio/answer.wav
+   .venv/bin/python -m speaklens.web     # abre http://127.0.0.1:8000
    ```
-   Hablar, **no leer** — leer degrada las métricas de fluidez igual que trabarse, y el
-   detector de lectura lo va a rechazar. Trabarse está bien: es la medición.
+   Lleva consigna por consigna, cronometra contra los 25 s objetivo y avisa si el micrófono
+   está bajo. `record.sh` sigue existiendo para tomas sueltas por terminal.
+   Hablar, **no leer** — pero ojo con el punto de §8: hoy el detector de lectura no atrapa
+   una lectura fluida.
 
 2. **Día 10 — README final + grabar el video de 2 minutos.** Para el README hace falta una
    captura del informe: usar una grabación de prueba, no una con datos propios de más.
@@ -148,6 +148,9 @@ cd ~/dev/personal/speaklens
 | El repo sigue **privado** | DEC-014 lo revisó: se hace público como parte del día 10. **Riesgo asumido**: si no se publica, el bloqueante "GitHub vacío" sigue sin resolverse |
 | 4 puntos ciegos del detector | Documentados como **fuera de alcance** en `languagetool-coverage.md`. Dos exigen saber que la oración anterior estaba en pasado: es el techo de un sistema de reglas |
 | Cronograma | DEC-020: una hora por día, sin fecha de entrega. **Tres días sin avance = señal de replanificar.** Entre el 9 y el 30 de agosto pasaron 21 |
+| **`looks_read_aloud` no atrapa una lectura fluida** | El test pide silencio >40% y pausa máxima <4 s, calibrado contra una lectura lenta de frases sueltas (54% de silencio). Un texto preparado leído a ritmo da **29% de silencio y pausa máxima de 3,3 s**: pasa como habla espontánea excelente. Es un agujero real, encontrado por la sesión 4 |
+| **El nivel se apoya en la mediana y la mediana la dominan las palabras que todos usan** | La sesión 4 dio **A2** sobre un texto con `architectures`, `relocation`, `validation`, `stabilize`, `transition`. Bandas: A1 25, A2 17, B1 20, B2 17, y `above_a2` en **47%**, tres puntos abajo del salto a B1. La señal está en la cola, no en el medio — y es el mismo defecto que produce el techo en B2 |
+| **Las palabras que Whisper inventa cuentan como vocabulario raro** | `_band()` manda a B2 todo lo que no conoce ninguna de las dos fuentes, así que un error de transcripción (`maining`) suma una palabra B2. Infla el numerador justo de la métrica que decide el nivel |
 | Nombre `speaklens` | Provisional desde el día 1; nadie lo confirmó |
 | Sin captura del informe en el README | El `report.html` real contiene la voz del usuario y está gitignoreado. La captura del día 10 hay que sacarla de una muestra pensada para mostrarse |
 | Loop conversacional con TTS | Fuera de v1 desde el principio. `say` de macOS costaría 0 GB de RAM si alguna vez se retoma |

@@ -64,8 +64,11 @@ does only what it is actually good at.
                           SQLite  ── mistakes listed, never ranked
                              │    └─ fluency compared across sessions
                              ▼
-                        report.html   one static file, no server and no
+                        report.html   one static file, no CDN and no
                                       request — see DEC-025
+
+  both front ends — the terminal and the guided browser recorder — run the same
+  sequence from speaklens/session.py, so they cannot disagree about a session
 ```
 
 The local LLM does not run at request time. Explanations are generated once per rule,
@@ -126,6 +129,17 @@ LanguageTool, injects the Spanish L1 rules into it, and then proves the detector
 by asking it to catch a mistake only those rules can catch. It does not install Ollama:
 the explanations were generated once and frozen into the repo, so nothing needs a model
 server at run time.
+
+Then either front end. The guided one, which is the one to use for a real diagnostic:
+
+```bash
+.venv/bin/python -m speaklens.web        # opens http://127.0.0.1:8000
+```
+
+One prompt at a time, timed, with a live microphone level — it exists because the first
+real session came back with three of the five prompts unanswered, which is not a cosmetic
+problem: the level estimate abstained two words short of its threshold. Or the terminal,
+on a recording you already have:
 
 ```bash
 .venv/bin/python -m speaklens.cli path/to/recording.wav --open

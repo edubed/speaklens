@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SpeakLens — grabar</title>
+<style>
+:root {
+  --bg: #f6f6f4; --card: #ffffff; --ink: #16181d; --dim: #5f6672;
+  --line: #e2e3e0; --accent: #2f5d50; --warn: #8a5a12; --warn-bg: #fdf5e6;
+  --mark: #b23c2e; --ok: #2f7d5f;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14161a; --card: #1c1f25; --ink: #e8e9ea; --dim: #9aa2ad;
+    --line: #2c3038; --accent: #7fc2ad; --warn: #e0b062; --warn-bg: #2a2318;
+    --mark: #e08a7c; --ok: #7fc2ad;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 2.5rem 1.25rem 4rem; background: var(--bg); color: var(--ink);
+  font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+main { max-width: 38rem; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin: 0 0 .25rem; letter-spacing: -.01em; }
+.meta { color: var(--dim); font-size: .85rem; margin: 0 0 1.5rem; }
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+  padding: 1.5rem; margin-bottom: 1rem;
+}
+.dots { display: flex; gap: .4rem; margin-bottom: 1.25rem; }
+.dot { height: .3rem; flex: 1; border-radius: 2px; background: var(--line); }
+.dot.done { background: var(--accent); }
+.dot.now { background: var(--ink); }
+.prompt { font-size: 1.35rem; line-height: 1.35; margin: 0 0 .6rem; letter-spacing: -.01em; }
+.hint { color: var(--dim); font-size: .9rem; margin: 0 0 1.5rem; }
+button {
+  font: inherit; font-weight: 600; padding: .7rem 1.4rem; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer;
+}
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+button:disabled { opacity: .45; cursor: default; }
+.row { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+.timer { font-variant-numeric: tabular-nums; font-size: 1.1rem; color: var(--dim); }
+.timer.reached { color: var(--ok); font-weight: 600; }
+.meter { height: .5rem; background: var(--line); border-radius: 3px; overflow: hidden; margin: 1.25rem 0 .4rem; }
+.meter > div { height: 100%; width: 0; background: var(--ok); transition: width .08s linear; }
+.note { font-size: .82rem; color: var(--dim); margin: 0; min-height: 1.2rem; }
+.note.warn { color: var(--warn); font-weight: 600; }
+.abstain { background: var(--warn-bg); border-color: color-mix(in srgb, var(--warn) 35%, transparent); }
+ul { padding-left: 1.1rem; color: var(--dim); font-size: .9rem; }
+li { margin: .35rem 0; }
+.spinner {
+  width: 1.1rem; height: 1.1rem; border: 2px solid var(--line);
+  border-top-color: var(--accent); border-radius: 50%; display: inline-block;
+  animation: spin 1s linear infinite; vertical-align: -.2rem; margin-right: .5rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>SpeakLens</h1>
+  <p class="meta" id="subtitle">Cinco consignas habladas. Nada sale de esta máquina.</p>
+
+  <!-- intro -->
+  <section id="intro">
+    <div class="card">
+      <p class="prompt">Vas a hablar, no leer.</p>
+      <ul>
+        <li>Cinco consignas, unos 25 segundos cada una. Dos minutos en total.</li>
+        <li><b>Trabarte está bien: eso es la medición.</b> Si te quedás en blanco, seguí hablando igual — el silencio y los arranques fallidos son el dato.</li>
+        <li>Leer una respuesta escrita invalida las métricas de fluidez, y el sistema lo detecta.</li>
+        <li>Acercate al micrófono. Abajo vas a ver el nivel mientras hablás.</li>
+      </ul>
+      <div class="row"><button class="primary" id="start">Empezar</button></div>
+      <p class="note" id="mic-error"></p>
+    </div>
+  </section>
+
+  <!-- warm up -->
+  <section id="warmup" hidden>
+    <div class="card">
+      <p class="meta" style="margin:0 0 .5rem">Calentamiento · no se graba</p>
+      <p class="prompt" id="warmup-text"></p>
+      <p class="hint">Decilo en voz alta para soltarte. Existe para que la primera consigna no se lleve puesta tu duda inicial.</p>
+      <div class="row"><button class="primary" id="warmup-done">Listo, empecemos</button></div>
+    </div>
+  </section>
+
+  <!-- prompts -->
+  <section id="recording" hidden>
+    <div class="dots" id="dots"></div>
+    <div class="card">
+      <p class="meta" id="counter"></p>
+      <p class="prompt" id="prompt-text"></p>
+      <p class="hint" id="prompt-hint"></p>
+
+      <div class="row">
+        <button class="primary" id="record">Grabar</button>
+        <button id="next" hidden>Siguiente</button>
+        <button id="again" hidden>Regrabar</button>
+        <span class="timer" id="timer">0:00</span>
+      </div>
+
+      <div class="meter"><div id="level"></div></div>
+      <p class="note" id="note">El objetivo son 25 segundos. Podés parar antes o seguir.</p>
+    </div>
+  </section>
+
+  <!-- analysing -->
+  <section id="working" hidden>
+    <div class="card">
+      <p class="prompt"><span class="spinner"></span><span id="working-text">Analizando…</span></p>
+      <p class="hint">Whisper tarda alrededor de un tercio de lo que dura la grabación, y después
+      LanguageTool revisa cada frase. Un minuto, más o menos. No cierres esta pestaña.</p>
+    </div>
+  </section>
+
+  <!-- failure -->
+  <section id="failed" hidden>
+    <div class="card abstain">
+      <p class="prompt">No se pudo analizar</p>
+      <p class="hint" id="failed-text"></p>
+      <div class="row"><button id="retry">Volver a intentar</button></div>
+    </div>
+  </section>
+</main>
+
+<script>
+const DATA = __PROMPTS__;
+
+// Peak level below which the microphone is not really getting the voice. Same
+// number record.sh rejects a take at: the first spike run lost words to a
+// recording that peaked around -39 dB.
+const QUIET_DBFS = -30;
+const HARD_STOP_SECONDS = 60;
+
+const el = (id) => document.getElementById(id);
+const show = (id) => { for (const s of document.querySelectorAll("main > section")) s.hidden = true; el(id).hidden = false; };
+
+let stream, recorder, chunks, index = 0, startedAt = 0, ticker, analyser, meterLoop, quietSince = 0;
+
+el("warmup-text").textContent = DATA.warm_up;
+
+el("start").addEventListener("click", async () => {
+  try {
+    // getUserMedia only exists in a secure context; http://localhost counts as one,
+    // which is why this page has to be served by the local process and not opened
+    // as a file:// or pulled from somewhere else.
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (error) {
+    el("mic-error").className = "note warn";
+    el("mic-error").textContent = "No se pudo abrir el micrófono: " + error.message;
+    return;
+  }
+  startMeter();
+  show("warmup");
+});
+
+el("warmup-done").addEventListener("click", () => { show("recording"); renderPrompt(); });
+el("record").addEventListener("click", () => (recorder && recorder.state === "recording") ? stop() : start());
+el("again").addEventListener("click", () => { el("again").hidden = true; el("next").hidden = true; start(); });
+el("next").addEventListener("click", () => { index += 1; index < DATA.prompts.length ? renderPrompt() : analyze(); });
+el("retry").addEventListener("click", analyze);
+
+function renderPrompt() {
+  const prompt = DATA.prompts[index];
+  el("counter").textContent = `Consigna ${index + 1} de ${DATA.prompts.length}`;
+  el("prompt-text").textContent = prompt.text;
+  el("prompt-hint").textContent = prompt.hint_es;
+  el("record").textContent = "Grabar";
+  el("record").hidden = false;
+  el("next").hidden = true;
+  el("again").hidden = true;
+  el("timer").textContent = "0:00";
+  el("timer").className = "timer";
+  el("note").className = "note";
+  el("note").textContent = `El objetivo son ${DATA.seconds} segundos. Podés parar antes o seguir.`;
+
+  el("dots").innerHTML = "";
+  DATA.prompts.forEach((_, i) => {
+    const dot = document.createElement("div");
+    dot.className = "dot" + (i < index ? " done" : i === index ? " now" : "");
+    el("dots").appendChild(dot);
+  });
+}
+
+function start() {
+  chunks = [];
+  recorder = new MediaRecorder(stream);
+  recorder.ondataavailable = (event) => chunks.push(event.data);
+  recorder.onstop = upload;
+  recorder.start();
+  startedAt = Date.now();
+  el("record").textContent = "Detener";
+  el("next").hidden = true;
+  el("again").hidden = true;
+  ticker = setInterval(tick, 200);
+}
+
+function stop() {
+  clearInterval(ticker);
+  recorder.stop();
+  el("record").hidden = true;
+}
+
+function tick() {
+  const seconds = (Date.now() - startedAt) / 1000;
+  el("timer").textContent = `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
+  if (seconds >= DATA.seconds) el("timer").className = "timer reached";
+  if (seconds >= HARD_STOP_SECONDS) stop();
+}
+
+async function upload() {
+  const blob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
+  el("note").className = "note";
+  el("note").textContent = "Guardando…";
+  try {
+    // Raw bytes with the browser's own content type: no multipart, so the server
+    // stays four routes of standard library.
+    const response = await fetch(`/clip?order=${index + 1}`, {
+      method: "POST",
+      headers: { "Content-Type": blob.type.split(";")[0] },
+      body: blob,
+    });
+    if (!response.ok) throw new Error(await response.text());
+  } catch (error) {
+    el("note").className = "note warn";
+    el("note").textContent = "No se pudo guardar: " + error.message;
+    el("again").hidden = false;
+    return;
+  }
+  const seconds = (Date.now() - startedAt) / 1000;
+  el("note").textContent = seconds < 10
+    ? "Guardado, pero fue muy corto. Con respuestas cortas el nivel no se puede estimar — mejor regrabá."
+    : "Guardado.";
+  el("note").className = seconds < 10 ? "note warn" : "note";
+  el("again").hidden = false;
+  el("next").hidden = false;
+  el("next").textContent = index + 1 < DATA.prompts.length ? "Siguiente" : "Analizar";
+}
+
+function startMeter() {
+  const context = new AudioContext();
+  analyser = context.createAnalyser();
+  analyser.fftSize = 1024;
+  context.createMediaStreamSource(stream).connect(analyser);
+  const buffer = new Float32Array(analyser.fftSize);
+
+  const draw = () => {
+    analyser.getFloatTimeDomainData(buffer);
+    let peak = 0;
+    for (const sample of buffer) peak = Math.max(peak, Math.abs(sample));
+    const dbfs = 20 * Math.log10(peak || 1e-8);
+    el("level").style.width = Math.max(0, Math.min(100, (dbfs + 60) / 60 * 100)) + "%";
+
+    // Only complain while actually recording, and only after the level has stayed
+    // low for a while: silence between sentences is data, not a bad microphone.
+    if (recorder && recorder.state === "recording") {
+      if (dbfs > QUIET_DBFS) quietSince = 0;
+      else if (!quietSince) quietSince = Date.now();
+      if (quietSince && Date.now() - quietSince > 3000) {
+        el("note").className = "note warn";
+        el("note").textContent = "Muy bajo. Acercate al micrófono y hablá más fuerte.";
+      }
+    }
+    meterLoop = requestAnimationFrame(draw);
+  };
+  draw();
+}
+
+async function analyze() {
+  show("working");
+  const poll = setInterval(async () => {
+    try {
+      const status = await (await fetch("/status")).json();
+      if (status.detail) el("working-text").textContent = status.detail;
+    } catch (error) { /* the server is busy transcribing; try again next tick */ }
+  }, 1000);
+
+  try {
+    const response = await fetch("/analyze", { method: "POST" });
+    const result = await response.json();
+    clearInterval(poll);
+    if (result.error) throw new Error(result.error);
+    window.location.href = result.report;
+  } catch (error) {
+    clearInterval(poll);
+    el("failed-text").textContent = error.message;
+    show("failed");
+  }
+}
+</script>
+</body>
+</html>

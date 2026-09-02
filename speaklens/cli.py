@@ -4,6 +4,10 @@ The terminal output stays as it was built — deliberately ugly, and the thing t
 proves the path exists end to end. Since day 8 the same run also writes report.html,
 which is the version a person reads (and the one the video shows).
 
+The order of the steps lives in speaklens.session, not here: the browser UI runs
+the same sequence, and a duplicated sequence is how two front ends start disagreeing
+about what a session is.
+
     python -m speaklens.cli spike/audio/attempt.wav
     python -m speaklens.cli spike/audio/attempt.wav --open
 """
@@ -15,12 +19,9 @@ import time
 from pathlib import Path
 
 from . import curriculum as plan
-from . import detect as detector
 from . import explain as explainer
-from . import fluency as fluency_meter
-from . import level as level_estimator
 from . import report as reporter
-from . import storage
+from . import session as pipeline
 from . import themes as taxonomy
 from . import transcribe as transcriber
 
@@ -38,40 +39,13 @@ def main(argv: list[str] | None = None) -> int:
         print(f"no such recording: {audio}")
         return 1
 
-    print(f"transcribing {audio.name} with {transcriber.MODEL} ...", flush=True)
-    started = time.perf_counter()
-    transcript = transcriber.transcribe(audio)
-    elapsed = time.perf_counter() - started
-
-    print(f"  {transcript.duration:.0f}s of audio in {elapsed:.0f}s, "
-          f"{len(transcript.words)} words\n")
-    print(f"  {transcript.text}\n")
-
-    f = fluency_meter.measure(transcript.words)
-    print("fluidez:")
-    print(f"  {f.words_per_minute:5.0f}  palabras por minuto")
-    print(f"  {f.mean_run_length:5.1f}  palabras seguidas antes de frenar ({f.runs} tramos)")
-    print(f"  {f.pauses_per_minute:5.1f}  pausas por minuto (la mayor, {f.longest_pause:.1f}s)")
-    print(f"  {f.silence_ratio:5.0%}  del tiempo en silencio")
-    print(f"  {f.fillers:5d}  muletillas de duda, {f.crutches} de relleno")
-    for line in f.summary_es():
-        print(f"    - {line}")
-    print()
-
-    level = level_estimator.estimate(transcript.text)
-    print("nivel:")
-    for line in level.summary_es():
-        print(f"    - {line}")
-    print()
-
-    print("detecting ...", flush=True)
-    mistakes = detector.detect(transcript.sentences)
+    analysis = pipeline.analyze(audio, on_step=_printer())
+    mistakes = analysis.mistakes
     tax = taxonomy.load()
 
     if not mistakes:
         print("  no mistakes found")
-        trend = _persist(audio, transcript, f, level, mistakes)
-        _write_report(audio, transcript, f, level, mistakes, trend, flags)
+        _write_report(analysis, flags)
         return 0
 
     print(f"\n{len(mistakes)} errores\n")
@@ -87,7 +61,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"\n  ({cobertura:.0%} de los errores tienen explicación propia en español;"
               " el resto cae al tema o al mensaje de LanguageTool)")
 
-    # Agrupado, nunca ordenado por frecuencia: con ~27% de recall un ranking
+    # Agrupado, nunca ordenado por frecuencia: con recall parcial un ranking
     # ordenaría nuestros puntos ciegos, no las debilidades del hablante (DEC-024).
     print("\npor tema — esto es lo que pudimos detectar con seguridad,")
     print("no un perfil completo de tu inglés:")
@@ -121,46 +95,66 @@ def main(argv: list[str] | None = None) -> int:
             nombres = ", ".join(f"{u.order}. {u.title_es}" for u in others)
             print(f"\n  después, y en este orden: {nombres}")
 
-    trend = _persist(audio, transcript, f, level, mistakes)
-    _write_report(audio, transcript, f, level, mistakes, trend, flags)
+    if len(analysis.trend) > 1:
+        print("\npalabras seguidas antes de frenar, por sesión:")
+        for date, value in analysis.trend:
+            print(f"  {date}  {value:.1f}  {'#' * int(value * 3)}")
+
+    _write_report(analysis, flags)
     return 0
 
 
-def _write_report(audio, transcript, f, level, mistakes, trend, flags) -> None:
-    """The report screen (day 8). The CLI stays the source of truth for the numbers;
-    report.py only lays them out."""
+def _printer():
+    """Print each result the moment it exists, rather than all of them at the end.
+
+    Whisper takes about a third of the recording's length, so a run that printed
+    nothing until it was done would look hung for half a minute.
+    """
+    started = time.perf_counter()
+
+    def on_step(step: str, data=None) -> None:
+        nonlocal started
+        if step == "transcribe":
+            started = time.perf_counter()
+            print(f"transcribing with {transcriber.MODEL} ...", flush=True)
+        elif step == "transcribed":
+            elapsed = time.perf_counter() - started
+            print(f"  {data.duration:.0f}s of audio in {elapsed:.0f}s, "
+                  f"{len(data.words)} words\n")
+            print(f"  {data.text}\n")
+        elif step == "measured":
+            f, level = data
+            print("fluidez:")
+            print(f"  {f.words_per_minute:5.0f}  palabras por minuto")
+            print(f"  {f.mean_run_length:5.1f}  palabras seguidas antes de frenar ({f.runs} tramos)")
+            print(f"  {f.pauses_per_minute:5.1f}  pausas por minuto (la mayor, {f.longest_pause:.1f}s)")
+            print(f"  {f.silence_ratio:5.0%}  del tiempo en silencio")
+            print(f"  {f.fillers:5d}  muletillas de duda, {f.crutches} de relleno")
+            for line in f.summary_es():
+                print(f"    - {line}")
+            print("\nnivel:")
+            for line in level.summary_es():
+                print(f"    - {line}")
+            print()
+        elif step == "detect":
+            print("detecting ...", flush=True)
+
+    return on_step
+
+
+def _write_report(analysis, flags) -> None:
+    """The report screen (day 8). The pipeline stays the source of truth for the
+    numbers; report.py only lays them out."""
     path = reporter.write(
         open_browser="--open" in flags,
-        source=audio.name,
-        transcript=transcript,
-        fluency=f,
-        level=level,
-        mistakes=mistakes,
-        trend=trend,
+        source=analysis.source,
+        transcript=analysis.transcript,
+        fluency=analysis.fluency,
+        level=analysis.level,
+        mistakes=analysis.mistakes,
+        trend=analysis.trend,
     )
     print(f"\ninforme: {path}")
-
-
-def _persist(audio, transcript, f, level, mistakes) -> list[tuple[str, float]]:
-    connection = storage.connect()
-    try:
-        storage.save(
-            connection,
-            source=audio.name,
-            duration=transcript.duration,
-            transcript=transcript.text,
-            fluency=f,
-            level=level,
-            mistakes=mistakes,
-        )
-        history = storage.fluency_trend(connection, "mean_run_length")
-        if len(history) > 1:
-            print("\npalabras seguidas antes de frenar, por sesión:")
-            for date, value in history:
-                print(f"  {date}  {value:.1f}  {'#' * int(value * 3)}")
-        return history
-    finally:
-        connection.close()
 
 
 if __name__ == "__main__":
