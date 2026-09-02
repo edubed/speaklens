@@ -248,6 +248,16 @@ rankeados y un plan de estudio.
 
 ---
 
+### **DEC-027: Hay dos formas de leer, y la segunda pasó el control**
+
+- **Fecha**: 2026-09-01
+- **Contexto**: La sesión 4 (114 s, 141 palabras) volvió con **A2, cero errores detectados y métricas de fluidez excelentes** — 30% de silencio, 3,4 palabras encadenadas. El autor confirmó después que **había escrito las respuestas y las había leído**. El test de DEC-023 no la marcó: pedía silencio >40% y pausa máxima <4 s, umbrales calibrados contra una lectura *lenta* de frases sueltas.
+- **Decisión**: `looks_read_aloud` deja de exigir mucho silencio. El criterio pasa a ser el que comparten las dos formas de leer — **nunca frenar cuatro segundos a buscar una palabra** — más una segunda condición para la prosa leída de corrido: poco silencio (<35%) y tramos largos (>3 palabras). Las cuatro tomas etiquetadas quedan clavadas en `tests/check.py`.
+- **Motivo**: Un texto escrito y leído a ritmo produce el perfil **opuesto** a un recitado lento y es indistinguible de habla espontánea excelente por el test viejo. Lo único que ninguna lectura produce es la pausa de búsqueda: el texto ya está resuelto. Y el test se deja **deliberadamente sensible**, porque los costos son asimétricos — marcar habla real cuesta una regrabación y lo dice en pantalla, mientras que dejar pasar una lectura hace que el informe entero mienta sobre una persona que nunca fue medida (DEC-023).
+- **Impacto**: La sesión 4 queda marcada como leída y sale del histórico de fluidez. El margen más fino del proyecto está acá: la sesión 3, espontánea, tiene una pausa máxima de **4,10 s** contra un techo de 4,0 — el umbral lo sostiene una sola muestra, y está anotado como tal en `tests/check.py`. Queda pendiente un tercer eje independiente que no dependa de las pausas: densidad léxica y largo de cláusula separan registro escrito de hablado mucho mejor que cualquier medida de tiempo.
+
+---
+
 ## **Decisiones Pendientes**
 
 | # | Tema | Cuándo se resuelve |

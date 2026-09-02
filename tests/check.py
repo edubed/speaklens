@@ -30,17 +30,36 @@ def check(name: str, got: object, want: object) -> None:
     print(f"{'ok  ' if got == want else 'FAIL'} {name}: {got!r}")
 
 
-# Measured 2026-08-09. Fifteen unrelated sentences read aloud with deliberate
-# pauses; worst gap 2.7s. The metrics must refuse to interpret this.
-READ_ALOUD = Fluency(71, 0, 159, 28, 27.6, 2.7, 0.54, 0, 1, 2.5, 28)
+# Four takes whose kind is known, because the speaker said so afterwards. Every
+# threshold in looks_read_aloud is answerable to these four and nothing else.
+#
+# Fields: words, speaking_seconds, wpm, pauses, pauses/min, longest_pause,
+#         silence_ratio, fillers, crutches, mean_run_length, runs
 
-# Measured 2026-08-09. Thirty-nine seconds answering prompt 1 unscripted, with one
-# 12.3s stop while searching for a word. No fillers at all — this speaker pauses
+# 2026-08-09. Fifteen unrelated sentences read aloud with deliberate pauses. The
+# slow-recital profile: lots of silence, short runs, no long stop.
+READ_SLOWLY = Fluency(71, 0, 158.8, 28, 27.6, 2.66, 0.54, 0, 1, 2.54, 28)
+
+# 2026-08-09. Thirty-nine seconds answering prompt 1 unscripted, with one 12.3s
+# stop while searching for a word. No fillers at all — this speaker pauses
 # silently, which is what broke the first version of the test.
-SPONTANEOUS = Fluency(26, 0, 143, 12, 19.8, 12.3, 0.67, 0, 0, 2.2, 12)
+SPONTANEOUS_SHORT = Fluency(26, 0, 142.8, 12, 19.8, 12.28, 0.67, 0, 0, 2.17, 12)
 
-check("read-aloud take is detected as reading", READ_ALOUD.looks_read_aloud, True)
-check("spontaneous take is not called reading", SPONTANEOUS.looks_read_aloud, False)
+# 2026-09-01. Ninety seconds, unscripted, three prompts answered. Its longest pause
+# is 4.1s against a 4.0 ceiling: this sample, not an argument, is what holds that
+# threshold where it is, and it is the thinnest margin in the file.
+SPONTANEOUS_LONG = Fluency(70, 0, 127.1, 27, 22.9, 4.10, 0.59, 0, 0, 2.19, 32)
+
+# 2026-09-01. Answers written out first and then read at pace. This is the take
+# that got through the previous version — 30% silence and runs of 3.4 words is the
+# opposite profile to a slow recital, and it reads as excellent spontaneous speech
+# on every number except the one that matters.
+READ_AS_PROSE = Fluency(141, 0, 116.3, 43, 23.1, 3.27, 0.30, 0, 1, 3.44, 41)
+
+check("slow recital is detected as reading", READ_SLOWLY.looks_read_aloud, True)
+check("written answers read at pace are detected", READ_AS_PROSE.looks_read_aloud, True)
+check("short spontaneous take is not called reading", SPONTANEOUS_SHORT.looks_read_aloud, False)
+check("long spontaneous take is not called reading", SPONTANEOUS_LONG.looks_read_aloud, False)
 
 A2_TEXT = """
 I like my job. I work in an office with my friends. Every day I go to work by bus

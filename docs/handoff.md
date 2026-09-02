@@ -110,8 +110,10 @@ sólo ellas ven; `./setup.sh` lo arregla.
 
 Nada bloqueado técnicamente. Lo único que espera **a una persona**:
 
-- **Nada.** La estimación de nivel ya no se abstiene: la sesión 4 (1/9, 114 s) dio **A2 con
-  85 palabras de contenido**. Lo que queda es grabar el video, que es decisión del autor.
+- **Una sesión hablada de las cinco consignas.** La sesión 4 llegó a 85 palabras de contenido
+  y dio A2, pero eran respuestas **escritas y leídas** (DEC-027), así que está marcada como
+  lectura y no cuenta como diagnóstico. Sigue sin existir una muestra espontánea que pase el
+  umbral de 40 palabras. Se graba con `python -m speaklens.web`.
 
 ---
 
@@ -148,7 +150,7 @@ cd ~/dev/personal/speaklens
 | El repo sigue **privado** | DEC-014 lo revisó: se hace público como parte del día 10. **Riesgo asumido**: si no se publica, el bloqueante "GitHub vacío" sigue sin resolverse |
 | 4 puntos ciegos del detector | Documentados como **fuera de alcance** en `languagetool-coverage.md`. Dos exigen saber que la oración anterior estaba en pasado: es el techo de un sistema de reglas |
 | Cronograma | DEC-020: una hora por día, sin fecha de entrega. **Tres días sin avance = señal de replanificar.** Entre el 9 y el 30 de agosto pasaron 21 |
-| **`looks_read_aloud` no atrapa una lectura fluida** | El test pide silencio >40% y pausa máxima <4 s, calibrado contra una lectura lenta de frases sueltas (54% de silencio). Un texto preparado leído a ritmo da **29% de silencio y pausa máxima de 3,3 s**: pasa como habla espontánea excelente. Es un agujero real, encontrado por la sesión 4 |
+| ~~`looks_read_aloud` no atrapa una lectura fluida~~ | **Arreglado — DEC-027.** La sesión 4 era una lectura de respuestas escritas y pasó como habla espontánea excelente. El test ya no exige mucho silencio; ahora se apoya en la pausa de búsqueda más un patrón de prosa leída. Las cuatro tomas etiquetadas están clavadas en `tests/check.py`. **El margen más fino del proyecto vive acá**: la sesión 3 (espontánea) tiene 4,10 s de pausa máxima contra un techo de 4,0 |
 | **El nivel se apoya en la mediana y la mediana la dominan las palabras que todos usan** | La sesión 4 dio **A2** sobre un texto con `architectures`, `relocation`, `validation`, `stabilize`, `transition`. Bandas: A1 25, A2 17, B1 20, B2 17, y `above_a2` en **47%**, tres puntos abajo del salto a B1. La señal está en la cola, no en el medio — y es el mismo defecto que produce el techo en B2 |
 | **Las palabras que Whisper inventa cuentan como vocabulario raro** | `_band()` manda a B2 todo lo que no conoce ninguna de las dos fuentes, así que un error de transcripción (`maining`) suma una palabra B2. Infla el numerador justo de la métrica que decide el nivel |
 | Nombre `speaklens` | Provisional desde el día 1; nadie lo confirmó |
