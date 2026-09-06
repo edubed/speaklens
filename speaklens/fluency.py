@@ -31,7 +31,7 @@ PAUSE_FLOOR = 0.35
 
 # Thresholds for the reading hint. Both are weak, and the code says so where it
 # uses them: on the six labelled takes, a fluent speaker's spontaneous English sits
-# on the reading side of the pause threshold, and one of them (Joan, 2026-09-02)
+# on the reading side of the pause threshold, and one of them (2026-09-02)
 # clears the disfluency threshold by a tenth of a point. They are kept only because
 # the hint no longer decides anything — the speaker is asked instead.
 READING_PAUSE_CEILING = 3.5
@@ -87,8 +87,8 @@ class Fluency:
         to search, so silence cannot tell the two apart.
 
         Adding disfluency markers narrows it but does not save it. On these six
-        takes the readings sit at 1.4 per hundred words and Joan at 1.6 — a
-        difference of less than one word in her whole answer.
+        takes the readings sit at 1.4 per hundred words and the closest
+        spontaneous one at 1.6 — less than one word in a whole answer.
 
         So the app now asks the speaker, and this is reduced to a hint that only
         ever appears alongside a declaration it disagrees with. That is why the

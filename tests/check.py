@@ -55,23 +55,23 @@ SPONTANEOUS_LONG = Fluency(70, 0, 127.1, 27, 22.9, 4.10, 0.59, 0, 1, 2.19, 32, 0
 # recorded with him in the room, so their kind is not inferred but witnessed.
 # They are why the test stopped being a gate: neither ever pauses long enough to
 # look like speech, because neither has to search for the word.
-FLUENT_ALE = Fluency(353, 0, 158.3, 73, 22.3, 2.99, 0.31, 0, 12, 4.84, 73, 3)
-FLUENT_JOAN = Fluency(314, 0, 147.4, 81, 25.3, 2.17, 0.33, 0, 5, 3.88, 81, 0)
+FLUENT_B = Fluency(353, 0, 158.3, 73, 22.3, 2.99, 0.31, 0, 12, 4.84, 73, 3)
+FLUENT_C = Fluency(314, 0, 147.4, 81, 25.3, 2.17, 0.33, 0, 5, 3.88, 81, 0)
 
 check("a slow recital hints at reading", READ_SLOWLY.looks_read_aloud, True)
 check("written answers read at pace hint at reading", READ_AS_PROSE.looks_read_aloud, True)
 check("a searching pause rules reading out", SPONTANEOUS_SHORT.looks_read_aloud, False)
 check("so does a 4.1s one", SPONTANEOUS_LONG.looks_read_aloud, False)
-check("a fluent speaker is not called a reader", FLUENT_ALE.looks_read_aloud, False)
-check("nor a fluent speaker with few markers", FLUENT_JOAN.looks_read_aloud, False)
+check("a fluent speaker is not called a reader", FLUENT_B.looks_read_aloud, False)
+check("nor a fluent speaker with few markers", FLUENT_C.looks_read_aloud, False)
 
 # The two margins holding those six apart, written down because they are thin
 # enough that anyone touching a threshold has to see them first. Sorted by longest
 # pause, read and spoken interleave — 2.17 spoken, 2.66 read, 2.99 spoken, 3.27
 # read — so the pause alone cannot separate them, and each spontaneous take is
 # rescued by a different clause. This is a hint, never a verdict.
-check("Joan clears the disfluency floor by a tenth of a point",
-      round(FLUENT_JOAN.disfluency_rate, 2), 1.59)
+check("the closest spontaneous take clears the floor by a tenth",
+      round(FLUENT_C.disfluency_rate, 2), 1.59)
 check("both readings sit just under it", 
       [round(READ_SLOWLY.disfluency_rate, 2), round(READ_AS_PROSE.disfluency_rate, 2)],
       [1.41, 1.42])
