@@ -62,19 +62,24 @@ FUNCTION_WORDS = {
 }
 
 
-# Where the level changes, read off the share of distinct vocabulary above A2.
+# The estimate is the mean band of the distinct vocabulary, scaled to 0-1:
+# A1 = 0, A2 = 1/3, B1 = 2/3, B2 = 1. Every word counts, at its own weight.
 #
-# This replaced a median, and the reason is structural rather than a matter of
-# tuning. Every speaker, at every level, builds most sentences from the same few
-# hundred words — "back", "job", "year", "make". That mass is identical at A1 and
-# at C2, so a median lands inside it no matter who is talking, and the estimate
-# ends up describing English rather than the speaker. What varies is the tail.
+# Two earlier versions each threw half the distribution away. A median sat inside
+# the mass of words everyone uses at every level and never moved. Then a cut at
+# "above A2" used only the tail — and on speech the tail is thin for everybody,
+# because nobody converses in B2 vocabulary. Four colleagues recorded on
+# 2026-09-02 came out at 15%, 15%, 16% and 21% above A2, all inside one band,
+# while the speaker their listener ranked first came out **last**: she had 30 A2
+# words to another speaker's 13, and a cut above A2 cannot see that. In spoken
+# English the variation between people lives at the A1/A2 boundary, not above B1.
 #
-# Measured on six texts (docs/languagetool-coverage.md keeps the table): two
-# written as A2 and B2 references, and four real sessions. The boundaries below
-# separate those six and nothing more — they are not calibrated against a labelled
-# corpus, which is why the report calls the level approximate.
-BANDS_ABOVE_A2 = [(0.45, "B2"), (0.25, "B1"), (0.10, "A2")]
+# The boundaries below are anchored on the only two texts written to be a known
+# level — the A2 and B2 references in tests/check.py, which score 0.05 and 0.56 —
+# with the two interior cuts interpolated between them. That is an anchor, not a
+# calibration: a labelled corpus would move these. The report says the level is
+# approximate for that reason.
+SCORE_BANDS = [(0.42, "B2"), (0.20, "B1"), (0.03, "A2")]
 
 
 @dataclass(frozen=True)
@@ -85,6 +90,7 @@ class LevelEstimate:
     type_token_ratio: float
     band_counts: dict[str, int]
     above_a2_ratio: float
+    score: float
     unknown_words: int
     reason: str
 
@@ -104,11 +110,10 @@ class LevelEstimate:
         if self.level is None:
             return [self.reason]
         lines = [
-            f"Nivel estimado por vocabulario: {self.label_es}.",
+            f"Nivel estimado por vocabulario: {self.label_es}. No mide gramática ni "
+            "fluidez: esas se leen al lado, no debajo.",
             f"{self.content_words} palabras de contenido, {self.distinct_words} distintas "
             f"(riqueza léxica {self.type_token_ratio:.2f}).",
-            f"El {self.above_a2_ratio:.0%} de tu vocabulario está por encima de A2, "
-            "que es la parte que separa un nivel de otro.",
         ]
         if self.band_counts.get("B2"):
             lines.append(f"Usaste {self.band_counts['B2']} palabras de banda B2.")
@@ -164,6 +169,19 @@ def _band(word: str) -> str | None:
     return "B2"
 
 
+def score_from_counts(counts: dict[str, int]) -> float:
+    """The mean band of a vocabulary profile, scaled to 0-1.
+
+    Split out from estimate() so it can be checked against real band profiles
+    without keeping anyone's transcript in the repo: the counts are the finding,
+    the words belonged to the people who said them.
+    """
+    total = sum(counts.values())
+    if not total:
+        return 0.0
+    return sum(RANK[level] * n for level, n in counts.items()) / total / (len(LEVELS) - 1)
+
+
 def _content_words(text: str) -> list[str]:
     tokens = re.findall(r"[a-z']+", text.lower())
     return [t for t in tokens if len(t) > 1 and t not in FUNCTION_WORDS]
@@ -181,6 +199,7 @@ def estimate(text: str) -> LevelEstimate:
             type_token_ratio=0.0,
             band_counts={},
             above_a2_ratio=0.0,
+            score=0.0,
             unknown_words=0,
             reason=(
                 f"Muestra insuficiente para estimar nivel: {len(words)} palabras de "
@@ -193,17 +212,18 @@ def estimate(text: str) -> LevelEstimate:
     if not banded:
         return LevelEstimate(
             level=None, content_words=len(words), distinct_words=len(distinct),
-            type_token_ratio=0.0, band_counts={}, above_a2_ratio=0.0,
+            type_token_ratio=0.0, band_counts={}, above_a2_ratio=0.0, score=0.0,
             unknown_words=unknown,
             reason="Ninguna de las palabras es reconocible como inglés. Revisá la grabación.",
         )
 
     counts = {level: banded.count(level) for level in LEVELS}
     above_a2 = (counts["B1"] + counts["B2"]) / len(banded)
+    score = score_from_counts(counts)
 
     level = "A1"
-    for floor, candidate in BANDS_ABOVE_A2:
-        if above_a2 >= floor:
+    for floor, candidate in SCORE_BANDS:
+        if score >= floor:
             level = candidate
             break
 
@@ -214,6 +234,7 @@ def estimate(text: str) -> LevelEstimate:
         type_token_ratio=len(distinct) / len(words),
         band_counts=counts,
         above_a2_ratio=above_a2,
+        score=score,
         unknown_words=unknown,
         reason="",
     )

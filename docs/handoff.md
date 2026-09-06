@@ -1,6 +1,6 @@
 # SpeakLens — Handoff
 
-**Última actualización:** 2026-09-02 · **Autor:** Edu Bedini (+ Claude)
+**Última actualización:** 2026-09-02 (tarde) · **Autor:** Edu Bedini (+ Claude)
 **Fase:** Ejecución · **Estado:** ▶ activo, días 0–9 de 10 completos + UI guiada (DEC-026)
 **Retomá acá →** §7: queda el **día 10** — README final, video de 2 minutos y hacer el repo público. Todo lo técnico está construido y hay dos preguntas abiertas de medición en §8 que valen más que cualquier feature nueva.
 
@@ -89,6 +89,7 @@ Las 24 están en [`decision_log.md`](decision_log.md). Las que más condicionan 
 ## 5. Estado del código
 
 - **Rama**: `main`, sincronizada con `origin/main`. **34 commits.**
+- **Muestras**: siete sesiones reales, cinco de ellas espontáneas y cuatro de otras personas grabadas con el autor presente. Es el activo más valioso del proyecto y no está en el repo (`sessions.db` gitignoreado).
 - **Cambios sin commitear**: **ninguno**. `git status` limpio.
 - **Tests**:
   - `.venv/bin/python tests/check.py` → *all checks passed* (umbrales fijados contra muestras reales)
@@ -152,7 +153,8 @@ cd ~/dev/personal/speaklens
 | 4 puntos ciegos del detector | Documentados como **fuera de alcance** en `languagetool-coverage.md`. Dos exigen saber que la oración anterior estaba en pasado: es el techo de un sistema de reglas |
 | Cronograma | DEC-020: una hora por día, sin fecha de entrega. **Tres días sin avance = señal de replanificar.** Entre el 9 y el 30 de agosto pasaron 21 |
 | ~~`looks_read_aloud` no separa lectura de habla~~ | **Resuelto por otra vía — DEC-030.** Con seis muestras etiquetadas quedó demostrado que **no hay umbral posible**: ordenadas por pausa máxima, lectura y habla se intercalan, porque un hablante fluido no frena a buscar la palabra. La app ahora **pregunta** y la heurística es una nota al pie. Márgenes finos documentados en `tests/check.py` |
-| **El nivel parece medir registro, no dominio** | Ale y Joan dieron **A2** (21% y 16% de vocabulario sobre A2) y el texto **escrito** del autor dio **B2+** (45%) — pero los dos hablan mejor inglés que él. La prosa escrita es léxicamente más densa que el habla, y el habla de cualquiera se apoya en palabras comunes. Tres muestras no alcanzan para concluir; **es la hipótesis más probable** y explica por qué el techo de B2 nunca se toca con habla real |
+| ~~El nivel parece medir registro~~ | **Investigado y resuelto en parte — DEC-031.** Con cuatro hablantes y su orden real conocido quedó claro que el juicio humano usa **dos ejes**: la mejor ganaba por vocabulario, el peor perdía por fluidez. El informe ahora encabeza con los dos y el vocabulario usa toda la distribución. Los cuatro dejaron de dar idéntico |
+| **La fluidez tampoco está calibrada** | `summary_es` dice "ahí se nota que te trabás" por debajo de 6 palabras encadenadas, y sobre siete muestras reales el máximo es **4,84**. La rama optimista no se dispara nunca. Es el mismo problema que tenía el vocabulario, del otro lado |
 | **Los umbrales de `summary_es` nunca se calibraron** | Dice "ahí se nota que te trabás" bajo 6 palabras encadenadas, y sobre seis muestras reales el máximo es 4,84. O sea que la rama optimista no se dispara nunca. Hace falta más gente antes de mover el número |
 | ~~El nivel se apoya en la mediana~~ | **Arreglado — DEC-028.** Ahora sale de la proporción de vocabulario por encima de A2, y las palabras desconocidas se descartan en vez de contar como B2. Los umbrales separan seis textos y nada más: **no hay calibración contra corpus etiquetado**, y por eso el informe dice que es aproximado |
 | **Arriba de B2 sigue sin verse nada** | CEFR-J termina en B2. La etiqueta ahora dice "B2 o más" en vez de mentir, pero distinguir C1 de B2 necesita otro eje: complejidad sintáctica con spaCy (`en_core_web_sm`, 12 MB) — que además resolvería el margen fino de DEC-027, porque densidad léxica y largo de cláusula separan registro escrito de hablado sin depender del reloj. **Una sola incorporación cubre las dos cosas** |

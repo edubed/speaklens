@@ -84,6 +84,20 @@ p { margin: .5rem 0; }
   background: var(--card); border: 1px solid var(--line); border-radius: 10px;
   padding: 1.1rem 1.25rem; margin-bottom: .75rem;
 }
+.axes { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+@media (max-width: 30rem) { .axes { grid-template-columns: 1fr; } }
+.axis {
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+  padding: 1.1rem 1.25rem;
+}
+.axis .tag {
+  font-size: .72rem; text-transform: uppercase; letter-spacing: .09em;
+  color: var(--dim); font-weight: 600; display: block; margin-bottom: .5rem;
+}
+.axis b { display: block; font-size: 2.4rem; font-weight: 700; line-height: 1;
+          letter-spacing: -.03em; color: var(--accent); }
+.axis .unit { font-size: .8rem; color: var(--dim); display: block; margin-top: .4rem; }
+.axis.quiet b { color: var(--warn); font-size: 1.6rem; }
 .level { display: flex; align-items: baseline; gap: 1rem; }
 .level .letter { font-size: 3rem; font-weight: 700; line-height: 1; color: var(--accent); }
 .abstain {
@@ -139,6 +153,40 @@ def _card(body: str, *, abstain: bool = False, tag: str = "") -> str:
     return f'<div class="card{" abstain" if abstain else ""}">{label}{body}</div>'
 
 
+def _axes_section(level, fluency, declared: str = "") -> str:
+    """The two things a listener is actually adding up, side by side.
+
+    Four colleagues recorded on 2026-09-02 came back with the same level, and the
+    person who ranked them could not see why: the one he put first won on
+    vocabulary, the one he put last lost on fluency, and the report was showing a
+    single letter drawn from the first axis only. A headline that reports one
+    dimension of a two-dimensional judgement does not read as incomplete — it
+    reads as wrong.
+    """
+    if level.level is None:
+        vocabulario = ('<div class="axis quiet"><span class="tag">Vocabulario</span>'
+                       f'<b>—</b><span class="unit">{_esc(level.reason)}</span></div>')
+    else:
+        vocabulario = ('<div class="axis"><span class="tag">Vocabulario</span>'
+                       f'<b>{_esc(level.level)}{"+" if level.saturated else ""}</b>'
+                       f'<span class="unit">{level.distinct_words} palabras distintas · '
+                       f'puntaje {level.score:.2f}</span></div>')
+
+    if declared == "read":
+        fluidez = ('<div class="axis quiet"><span class="tag">Fluidez</span><b>—</b>'
+                   '<span class="unit">dijiste que leíste: esto mediría el texto</span></div>')
+    else:
+        fluidez = ('<div class="axis"><span class="tag">Fluidez</span>'
+                   f'<b>{fluency.mean_run_length:.1f}</b>'
+                   '<span class="unit">palabras seguidas antes de frenar · '
+                   f'pausa más larga {fluency.longest_pause:.1f}s</span></div>')
+
+    return (f'<div class="axes">{vocabulario}{fluidez}</div>'
+            '<p class="why">Son dos ejes y no se promedian. Se puede tener vocabulario '
+            "amplio y trabarse cada tres palabras, o encadenar largo con pocas palabras. "
+            "La letra mide sólo lo primero.</p>")
+
+
 def _level_section(level) -> str:
     if level.level is None:
         # DEC-023: the missing number is the finding. Say which sample would fix it.
@@ -149,10 +197,8 @@ def _level_section(level) -> str:
     head, rest = lines[0], lines[1:]
     bands = " · ".join(f"{band} {count}" for band, count in level.band_counts.items() if count)
     body = (
-        f'<div class="level"><span class="letter">{_esc(level.level)}'
-        f'{"+" if level.saturated else ""}</span>'
-        f"<div><p>{_esc(head)}</p>"
-        f'<p class="meta">bandas de vocabulario: {_esc(bands)}</p></div></div>'
+        f"<p>{_esc(head)}</p>"
+        f'<p class="meta">bandas de vocabulario: {_esc(bands)}</p>'
         + '<ul class="read">'
         + "".join(f"<li>{_esc(line)}</li>" for line in rest)
         + "</ul>"
@@ -321,8 +367,13 @@ def _section(title: str, body: str) -> str:
 
 
 def render(*, source: str, transcript, fluency, level, mistakes, trend=(),
-           speaker: str = "", session_id: int | None = None, declared: str = "") -> str:
-    when = datetime.now().strftime("%d/%m/%Y %H:%M")
+           speaker: str = "", session_id: int | None = None, declared: str = "",
+           recorded_at: str = "") -> str:
+    # The date belongs to the recording, not to the render. Rebuilding an old
+    # session with a newer report used to stamp it with today, which quietly
+    # rewrote when someone had spoken.
+    when = (datetime.fromisoformat(recorded_at).astimezone().strftime("%d/%m/%Y %H:%M")
+            if recorded_at else datetime.now().strftime("%d/%m/%Y %H:%M"))
     quien = f"{_esc(speaker)} · " if speaker else ""
     header = (
         "<h1>SpeakLens — diagnóstico</h1>"
@@ -331,8 +382,9 @@ def render(*, source: str, transcript, fluency, level, mistakes, trend=(),
     )
     body = "".join([
         header,
-        _section("Nivel", _level_section(level)),
-        _section("Fluidez", _fluency_section(fluency, declared)),
+        _section("Cómo sonás", _axes_section(level, fluency, declared)),
+        _section("Vocabulario, en detalle", _level_section(level)),
+        _section("Fluidez, en detalle", _fluency_section(fluency, declared)),
         _section("Errores encontrados", _mistakes_section(mistakes)),
         _section("Por dónde empezar", _plan_section(mistakes)),
         _section("Entre sesiones", _trend_section(trend)),

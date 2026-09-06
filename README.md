@@ -111,6 +111,13 @@ the labelled takes interleave: 2.17s spoken, 2.66s read, 2.99s spoken, 3.27s rea
 no threshold because there is no separation. The app asks the speaker now, and the heuristic
 survives as a footnote that appears only when it disagrees with the answer.
 
+**A listener adds up two things, so the report stopped reporting one.** Four colleagues
+recorded in one afternoon came back with the same level, and the person who had listened to
+all four could not see why. He was right: the one he ranked first wins on vocabulary, and the
+one he ranked last loses on fluency — 2.85 words between pauses against 4.84, and a seven
+second stop where nobody else exceeds three. The report was showing a single letter drawn
+from the axis that varies least in speech. It leads with both now.
+
 **The pause is not where you would look for it.** Whisper returns speech as one
 unpunctuated run, and sentence-anchored rules need sentence starts. Its timeline is
 contiguous — each word ends where the next begins — so silence never appears as a gap. It

@@ -19,7 +19,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from speaklens.fluency import Fluency          # noqa: E402
-from speaklens.level import estimate           # noqa: E402
+from speaklens.level import estimate, score_from_counts   # noqa: E402
 
 failures: list[str] = []
 
@@ -130,6 +130,25 @@ check("dense prose is no longer read as A2", prose.level in {"B1", "B2"}, True)
 noise = estimate(A2_TEXT + " canility milanesas zzzqx")
 check("unknown words are dropped, not banded as B2", noise.unknown_words, 3)
 check("dropping them does not move the level", noise.level, a2.level)
+
+# Vocabulary profiles of two of the four colleagues recorded on 2026-09-02, kept as
+# counts rather than text: the finding is the distribution, and the words were
+# theirs. Their listener, who was in the room, ranked the first of these speakers
+# best of the four and the second worst.
+#
+# The previous rule counted only vocabulary above A2 and put them at 14.9% and
+# 15.2% — a tie, in the wrong order, with all four colleagues inside one band. The
+# difference between these two speakers is 30 A2 words against 13, exactly what a
+# cut above A2 throws away, and it is where spoken English varies at all.
+RANKED_FIRST = {"A1": 50, "A2": 30, "B1": 7, "B2": 7}
+RANKED_LAST = {"A1": 65, "A2": 13, "B1": 9, "B2": 5}
+
+check("the old cut ranked them backwards",
+      round((7 + 7) / 94, 3) < round((9 + 5) / 92, 3), True)
+check("the score puts them in the order the listener heard",
+      score_from_counts(RANKED_FIRST) > score_from_counts(RANKED_LAST), True)
+check("and separates them by more than a rounding error",
+      round(score_from_counts(RANKED_FIRST) - score_from_counts(RANKED_LAST), 2), 0.06)
 
 print()
 if failures:

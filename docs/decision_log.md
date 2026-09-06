@@ -288,6 +288,17 @@ rankeados y un plan de estudio.
 
 ---
 
+### **DEC-031: El informe encabeza con dos ejes, y el vocabulario se mide con toda la distribución**
+
+- **Fecha**: 2026-09-02
+- **Contexto**: Cuatro compañeros grabados con el autor en la sala. Él los ordenó de oído —Nadia primera, Lucas último, Joan y Ale indistinguibles en el medio— y **el informe les dio el mismo nivel a los cuatro**: 15%, 15%, 16% y 21% de vocabulario sobre A2, todos dentro de una banda. Peor: **la que él puso primera salió última**.
+- **Investigación**: dos hallazgos separados. (1) La que sonaba mejor gana en **vocabulario** —primera en las cuatro métricas léxicas, incluso controlando el largo con una ventana fija de 105 palabras—. (2) El que sonaba peor es último en **todas las de fluidez**: 129 palabras por minuto, 2,85 encadenadas, **una pausa de 7 segundos** cuando ningún otro pasa de 3, y 44% de silencio. En vocabulario está en el medio.
+- **Decisión**: (a) El nivel por vocabulario pasa a ser la **media ponderada de las bandas** (A1=0 … B2=1), que usa cada palabra a su peso, en lugar de un corte por encima de A2. (b) El informe encabeza con **dos ejes de igual peso** —vocabulario y fluidez— y la letra dice explícitamente que mide sólo lo primero.
+- **Motivo**: El juicio "habla mejor inglés" integra por lo menos dos dimensiones, y el informe mostraba una letra sacada de **la que menos varía cuando la gente habla**. Una sola letra en un juicio bidimensional no se lee como incompleta: se lee como equivocada. Y el corte arriba de A2 es ciego justo donde el habla varía — Nadia tenía **30 palabras de banda A2 contra 13** de Lucas y las dos daban el mismo número, porque en el habla nadie conversa con vocabulario B2. La corrección de DEC-028 fue buena en el diagnóstico y se pasó de largo: la mediana usaba sólo la masa, el corte usa sólo la punta.
+- **Impacto**: Los umbrales se anclan en los dos únicos textos escritos con nivel conocido (0,05 y 0,56) y los cortes interiores se interpolan entre ellos. Con eso los cuatro dejan de ser idénticos: **B1, B1, A2, A2**. Sigue sin haber calibración contra un corpus etiquetado. Aparece `scripts/rerender.py`, porque sin él un cambio de informe no alcanza a las sesiones ya grabadas y las cuatro personas que se prestaron se quedaban con la versión equivocada; el informe además pasa a fecharse por **la grabación** y no por el render. **Queda pendiente lo mismo del otro lado**: los umbrales de `summary_es` tampoco están calibrados — dice "ahí se nota que te trabás" bajo 6 palabras encadenadas y sobre siete muestras reales el máximo es 4,84.
+
+---
+
 ## **Decisiones Pendientes**
 
 | # | Tema | Cuándo se resuelve |
