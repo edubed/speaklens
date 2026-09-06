@@ -6,31 +6,45 @@ Answer five spoken prompts and get back your recurring mistakes grouped by gramm
 theme, an estimated level, and a study plan — with no audio ever leaving the machine and
 no API key anywhere.
 
-> **Status:** the pipeline works end to end, every run is stored, and each run writes a
-> `report.html` you can read. Transcription, fluency metrics, level estimation, detection,
-> the study plan, the Spanish explanations and the report screen are built; `setup.sh` and
-> the demo video are not. See [`docs/daily-plan.md`](docs/daily-plan.md).
+> **Status:** everything below runs. Recording is guided by a local page, transcription,
+> fluency, level, detection, the Spanish explanations and the study plan are built, `setup.sh`
+> takes a clone to a working install, and seven real sessions have been recorded — four of
+> them by other people, which is where most of the interesting bugs came from. The two-minute
+> demo video is the one thing still missing. See [`docs/daily-plan.md`](docs/daily-plan.md).
 
 ```
-$ python -m speaklens.cli spike/audio/attempt.wav
-transcribing attempt.wav with medium.en ...
-  62s of audio in 18s, 71 words
+$ python -m speaklens.cli spike/audio/attempt.wav --read
+transcribing with medium.en ...
+  62s of audio in 17s, 71 words
+
+  yesterday I go to the meeting last week she buy a new laptop I didn't went to
+  the party she don't like the project he have two brothers my friends is coming
+  tomorrow I have 32 years old ...
 
 fluidez:
-    143  palabras por minuto
-    2.2  palabras seguidas antes de frenar
-    67%  del tiempo en silencio
+    159  palabras por minuto
+    2.5  palabras seguidas antes de frenar (28 tramos)
+    54%  del tiempo en silencio
+    - Dijiste que leíste: estos números describen el texto, no a
+      quien habla. No se interpretan.
 
-por tema — esto es lo que pudimos detectar con seguridad,
-no un perfil completo de tu inglés:
+nivel:
+    - Muestra insuficiente para estimar nivel: 33 palabras de contenido,
+      hacen falta 40. Respondé más consignas.
 
-  Artículos
-      · 'am engineer' -> am an engineer
-  Orden de las palabras
-      · 'where you are' -> where are you
-  Tiempos verbales
-      · 'go' -> went
+14 errores
+
+  [Tiempos verbales] 'yesterday I go' -> went
+      En español alcanza con decir "ayer" y dejar el verbo en presente. El inglés
+      marca el pasado en el verbo igual: "yesterday I WENT".
+  [Concordancia sujeto-verbo] 'do' -> does
+      Con he, she o it el verbo lleva -s en presente. Y en negativo esa -s se muda
+      al auxiliar: no es "she don't like" sino "she doesn't like".
 ```
+
+Two refusals in one run, and both are the point: the sample was declared as read aloud, so
+the fluency numbers are shown but not interpreted, and it is too short to place a level, so
+no level is given. The mistakes are real either way — those come from rules, not from timing.
 
 ## The idea
 

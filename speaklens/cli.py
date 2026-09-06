@@ -43,7 +43,8 @@ def main(argv: list[str] | None = None) -> int:
     speaker = next((f.split("=", 1)[1] for f in flags if f.startswith("--speaker=")), "")
     # The web UI asks; on the command line you say it yourself, or say nothing.
     declared = "read" if "--read" in flags else "improvised" if "--improvised" in flags else ""
-    analysis = pipeline.analyze(audio, speaker=speaker, declared=declared, on_step=_printer())
+    analysis = pipeline.analyze(audio, speaker=speaker, declared=declared,
+                                on_step=_printer(declared))
     mistakes = analysis.mistakes
     tax = taxonomy.load()
 
@@ -108,11 +109,15 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
-def _printer():
+def _printer(declared: str = ""):
     """Print each result the moment it exists, rather than all of them at the end.
 
     Whisper takes about a third of the recording's length, so a run that printed
     nothing until it was done would look hung for half a minute.
+
+    The declaration is honoured here too. It used to be read only by the report,
+    so a run marked --read printed "this is where you get stuck" in the terminal
+    and "these numbers describe the text" in the browser, from the same numbers.
     """
     started = time.perf_counter()
 
@@ -134,8 +139,12 @@ def _printer():
             print(f"  {f.pauses_per_minute:5.1f}  pausas por minuto (la mayor, {f.longest_pause:.1f}s)")
             print(f"  {f.silence_ratio:5.0%}  del tiempo en silencio")
             print(f"  {f.fillers:5d}  muletillas de duda, {f.crutches} de relleno")
-            for line in f.summary_es():
-                print(f"    - {line}")
+            if declared == "read":
+                print("    - Dijiste que leíste: estos números describen el texto, no a")
+                print("      quien habla. No se interpretan.")
+            else:
+                for line in f.summary_es():
+                    print(f"    - {line}")
             print("\nnivel:")
             for line in level.summary_es():
                 print(f"    - {line}")
